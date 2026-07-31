@@ -53,7 +53,6 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ──────────────── HEADER ──────────────── */
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, #0a0a6e 40%, #0d1b7a 100%);
             color: var(--white);
@@ -110,7 +109,6 @@
             color: #fff;
         }
 
-        /* ──────────────── BUTTONS ──────────────── */
         .btn {
             font-family: var(--font-body);
             font-size: 0.88rem;
@@ -186,14 +184,12 @@
             border-color: #fff;
         }
 
-        /* ──────────────── MAIN CONTAINER ──────────────── */
         .main-container {
             max-width: 1350px;
             margin: 0 auto;
             padding: 1.2rem 1rem 2.5rem;
         }
 
-        /* ──────────────── SUMMARY CARDS ──────────────── */
         .summary-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -239,7 +235,6 @@
             margin-top: 0.15rem;
         }
 
-        /* ──────────────── TABS ──────────────── */
         .tab-nav {
             display: flex;
             gap: 0.3rem;
@@ -285,7 +280,6 @@
             display: block;
         }
 
-        /* ──────────────── TABLE ──────────────── */
         .table-wrapper {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -429,7 +423,6 @@
             background: rgba(0, 180, 216, 0.05);
         }
 
-        /* ──────────────── EXPENSE TABLE ──────────────── */
         .expense-table {
             width: 100%;
             border-collapse: collapse;
@@ -452,7 +445,6 @@
             background: #f8fdff;
         }
 
-        /* ──────────────── MODAL ──────────────── */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -532,7 +524,6 @@
             flex-wrap: wrap;
         }
 
-        /* ──────────────── QRIS SECTION ──────────────── */
         .qris-section {
             background: #fff;
             border-radius: var(--radius-md);
@@ -576,7 +567,6 @@
             margin-top: 0.8rem;
         }
 
-        /* ──────────────── RESPONSIVE ──────────────── */
         @media (max-width: 768px) {
             .header {
                 padding: 1rem 0.8rem;
@@ -637,7 +627,6 @@
             }
         }
 
-        /* ──────────────── TOAST ──────────────── */
         .toast {
             position: fixed;
             bottom: 1.5rem;
@@ -674,7 +663,6 @@
             }
         }
 
-        /* ──────────────── LOADING ──────────────── */
         .loading-spinner {
             display: inline-block;
             width: 20px;
@@ -901,7 +889,6 @@
         // 🔥 FIREBASE CONFIGURATION
         // ──────────────────────────────────────
         // GANTI dengan konfigurasi Firebase project Anda sendiri.
-        // Buka Firebase Console > Project Settings > Web App > Config.
         const firebaseConfig = {
             apiKey: "AIzaSyD-PLACEHOLDER-KEY-REPLACE-ME",
             authDomain: "your-project.firebaseapp.com",
@@ -912,7 +899,6 @@
             appId: "1:000000000000:web:xxxxxxxxxxxxxxxxxxxx"
         };
 
-        // Inisialisasi Firebase
         let firebaseApp;
         let database;
         try {
@@ -921,7 +907,7 @@
             console.log('✅ Firebase terhubung.');
         } catch (err) {
             console.error('❌ Gagal inisialisasi Firebase:', err);
-            alert('Firebase belum dikonfigurasi dengan benar. Silakan ganti firebaseConfig dengan data project Anda.');
+            database = null;
         }
 
         // ──────────────────────────────────────
@@ -973,12 +959,7 @@
             document.getElementById('btnAddStudent').disabled = false;
             document.getElementById('btnAddExpense').disabled = false;
             document.getElementById('adminEditAnnouncement').style.display = 'block';
-            // Enable clicking on status cells
-            document.querySelectorAll('.status-lunas, .status-belum').forEach(el => {
-                el.style.cursor = 'pointer';
-                el.title = 'Klik untuk ubah status';
-            });
-            renderPaymentTable(); // re-render with admin capabilities
+            renderPaymentTable();
         }
 
         function updateUIForGuest() {
@@ -989,10 +970,6 @@
             document.getElementById('btnAddStudent').disabled = true;
             document.getElementById('btnAddExpense').disabled = true;
             document.getElementById('adminEditAnnouncement').style.display = 'none';
-            document.querySelectorAll('.status-lunas, .status-belum').forEach(el => {
-                el.style.cursor = 'default';
-                el.title = '';
-            });
             renderPaymentTable();
         }
 
@@ -1001,11 +978,11 @@
         // ──────────────────────────────────────
         const START_DATE = new Date('2024-07-27');
         const KELAS_11_START = new Date('2025-07-28');
-        const KELAS_12_START = new Date('2026-09-14'); // after Sept 13, 2026
+        const KELAS_12_START = new Date('2026-09-14');
 
         function getFirstMondayOnOrAfter(date) {
             const d = new Date(date);
-            const day = d.getDay(); // 0=Minggu, 1=Senin, ...
+            const day = d.getDay();
             if (day === 1) return new Date(d);
             const diff = (8 - day) % 7;
             d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
@@ -1017,7 +994,7 @@
             const firstMonday = getFirstMondayOnOrAfter(START_DATE);
             const today = new Date();
             const endDate = new Date(today);
-            endDate.setDate(endDate.getDate() + 60); // ~8 minggu ke depan
+            endDate.setDate(endDate.getDate() + 60);
             const current = new Date(firstMonday);
             while (current <= endDate) {
                 mondays.push(new Date(current));
@@ -1057,43 +1034,77 @@
             return `${year}-${month}-${day}`;
         }
 
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        function getEndOfWeek(date) {
+            const start = getStartOfWeek(date);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
+            end.setHours(23, 59, 59, 999);
+            return end;
+        }
+
         // ──────────────────────────────────────
-        // 📦 DATA CACHE
+        // 📦 DATA CACHE & LOADING SAFETY
         // ──────────────────────────────────────
         let cachedStudents = {};
         let cachedExpenses = {};
         let cachedHolidays = {};
         let cachedAnnouncement = '';
+        let loadingTimer = null;
 
         function loadAllData() {
-            if (!database) return;
+            if (!database) {
+                document.getElementById('emptyPaymentState').textContent =
+                    '⚠️ Firebase belum dikonfigurasi. Silakan ganti firebaseConfig dengan data project Anda.';
+                document.getElementById('emptyPaymentState').style.display = 'block';
+                document.getElementById('paymentTableWrapper').style.display = 'none';
+                return;
+            }
+
             showLoading(true);
+            if (loadingTimer) clearTimeout(loadingTimer);
+            loadingTimer = setTimeout(() => {
+                console.warn('⚠️ Loading timeout! Memaksa menutup overlay.');
+                showLoading(false);
+                showToast('⚠️ Gagal memuat data. Periksa koneksi atau aturan Firebase.');
+            }, 8000);
+
             const promises = [];
-            // Students
             promises.push(new Promise((resolve) => {
                 database.ref('students').once('value', (snap) => {
                     cachedStudents = snap.val() || {};
                     resolve();
-                }, () => { cachedStudents = {};
-                    resolve(); });
+                }, () => {
+                    cachedStudents = {};
+                    resolve();
+                });
             }));
-            // Expenses
             promises.push(new Promise((resolve) => {
                 database.ref('expenses').once('value', (snap) => {
                     cachedExpenses = snap.val() || {};
                     resolve();
-                }, () => { cachedExpenses = {};
-                    resolve(); });
+                }, () => {
+                    cachedExpenses = {};
+                    resolve();
+                });
             }));
-            // Holidays
             promises.push(new Promise((resolve) => {
                 database.ref('holidays').once('value', (snap) => {
                     cachedHolidays = snap.val() || {};
                     resolve();
-                }, () => { cachedHolidays = {};
-                    resolve(); });
+                }, () => {
+                    cachedHolidays = {};
+                    resolve();
+                });
             }));
-            // Announcement
             promises.push(new Promise((resolve) => {
                 database.ref('announcement').once('value', (snap) => {
                     cachedAnnouncement = snap.val() ||
@@ -1105,9 +1116,16 @@
                     resolve();
                 });
             }));
+
             Promise.all(promises).then(() => {
+                clearTimeout(loadingTimer);
                 showLoading(false);
                 refreshAllUI();
+            }).catch((error) => {
+                console.error('Promise all error:', error);
+                clearTimeout(loadingTimer);
+                showLoading(false);
+                showToast('❌ Error memuat data.');
             });
         }
 
@@ -1127,7 +1145,7 @@
             const studentIds = Object.keys(cachedStudents);
             mondays.forEach(m => {
                 const ds = dateStr(m);
-                if (cachedHolidays[ds]) return; // skip holidays
+                if (cachedHolidays[ds]) return;
                 const nominalInfo = getNominalForDate(ds);
                 let lunasCount = 0;
                 studentIds.forEach(sid => {
@@ -1163,7 +1181,6 @@
             emptyState.style.display = 'none';
             document.getElementById('paymentTableWrapper').style.display = 'block';
             const todayStr = dateStr(new Date());
-            // Build header
             let headHTML = '<tr><th class="sticky-name">Nama Siswa</th>';
             mondays.forEach(m => {
                 const ds = dateStr(m);
@@ -1184,7 +1201,6 @@
             headHTML += '</tr>';
             thead.innerHTML = headHTML;
 
-            // Build body
             let bodyHTML = '';
             const sortedIds = studentIds.sort((a, b) => {
                 const nameA = (cachedStudents[a]?.name || '').toLowerCase();
@@ -1214,23 +1230,6 @@
             });
             tbody.innerHTML = bodyHTML;
             updateSummaryCards();
-        }
-
-        function getStartOfWeek(date) {
-            const d = new Date(date);
-            const day = d.getDay();
-            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            d.setDate(diff);
-            d.setHours(0, 0, 0, 0);
-            return d;
-        }
-
-        function getEndOfWeek(date) {
-            const start = getStartOfWeek(date);
-            const end = new Date(start);
-            end.setDate(end.getDate() + 6);
-            end.setHours(23, 59, 59, 999);
-            return end;
         }
 
         function escapeHTML(str) {
@@ -1271,7 +1270,6 @@
                 return; }
             const isHoliday = !!cachedHolidays[dateStr];
             if (isHoliday) {
-                // Remove holiday
                 showLoading(true);
                 database.ref(`holidays/${dateStr}`).remove((err) => {
                     showLoading(false);
@@ -1284,7 +1282,6 @@
                     }
                 });
             } else {
-                // Add holiday
                 if (confirm(`Tandai ${formatDateIndonesian(dateStr)} sebagai Libur?\nSemua siswa tidak dikenakan tagihan di minggu ini.`)) {
                     showLoading(true);
                     database.ref(`holidays/${dateStr}`).set(true, (err) => {
@@ -1403,7 +1400,6 @@
                     '<tr><td colspan="4" style="text-align:center; color:var(--gray); padding:2rem;">Belum ada data pengeluaran</td></tr>';
                 return;
             }
-            // Sort by date descending
             expenseIds.sort((a, b) => {
                 const da = cachedExpenses[a]?.date || '';
                 const db = cachedExpenses[b]?.date || '';
@@ -1495,8 +1491,8 @@
                 const rincian = [];
                 mondays.forEach(m => {
                     const ds = dateStr(m);
-                    if (ds > todayStr) return; // hanya sampai hari ini
-                    if (cachedHolidays[ds]) return; // skip libur
+                    if (ds > todayStr) return;
+                    if (cachedHolidays[ds]) return;
                     const status = student?.payments?.[ds] || 'Belum Lunas';
                     if (status !== 'Lunas') {
                         const nominalInfo = getNominalForDate(ds);
@@ -1517,17 +1513,17 @@
             recapLines.push('═══════════════════════════════════════');
             recapLines.push(`  GRAND TOTAL TUNGGAKAN: ${formatRupiah(grandTotal)}`);
             recapLines.push(`  Jumlah Siswa Menunggak: ${sortedIds.filter(sid => {
-        let tt = 0;
-        const student = cachedStudents[sid];
-        mondays.forEach(m => {
-            const ds = dateStr(m);
-            if (ds > todayStr) return;
-            if (cachedHolidays[ds]) return;
-            const status = student?.payments?.[ds] || 'Belum Lunas';
-            if (status !== 'Lunas') tt += getNominalForDate(ds).nominal;
-        });
-        return tt > 0;
-    }).length}`);
+                let tt = 0;
+                const student = cachedStudents[sid];
+                mondays.forEach(m => {
+                    const ds = dateStr(m);
+                    if (ds > todayStr) return;
+                    if (cachedHolidays[ds]) return;
+                    const status = student?.payments?.[ds] || 'Belum Lunas';
+                    if (status !== 'Lunas') tt += getNominalForDate(ds).nominal;
+                });
+                return tt > 0;
+            }).length}`);
             recapLines.push('═══════════════════════════════════════');
             recapLines.push('');
             recapLines.push('Dihasilkan oleh: Data Pembayaran SYNC TJKT 3');
@@ -1601,8 +1597,15 @@
         // ──────────────────────────────────────
         function showLoading(show) {
             const overlay = document.getElementById('loadingOverlay');
-            if (show) overlay.classList.add('show');
-            else overlay.classList.remove('show');
+            if (show) {
+                overlay.classList.add('show');
+            } else {
+                overlay.classList.remove('show');
+                if (loadingTimer) {
+                    clearTimeout(loadingTimer);
+                    loadingTimer = null;
+                }
+            }
         }
 
         // ──────────────────────────────────────
@@ -1613,13 +1616,11 @@
                 document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove(
                     'show'));
             }
-            // Enter key in login modal
             if (e.key === 'Enter' && document.getElementById('loginModal').classList.contains('show')) {
                 login();
             }
         });
 
-        // Close modals on overlay click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', function(e) {
                 if (e.target === this) this.classList.remove('show');
@@ -1638,10 +1639,11 @@
                     '⚠️ Firebase belum dikonfigurasi. Silakan ganti firebaseConfig dengan data project Anda.';
                 document.getElementById('emptyPaymentState').style.display = 'block';
                 document.getElementById('paymentTableWrapper').style.display = 'none';
+                showLoading(false);
             }
         }
 
-        // Realtime listener for live updates
+        // Realtime listeners
         function setupRealtimeListeners() {
             if (!database) return;
             database.ref('students').on('value', (snap) => {
@@ -1663,15 +1665,10 @@
             });
         }
 
-        // Start everything
         init();
         setupRealtimeListeners();
 
-        console.log('🚀 Aplikasi Data Pembayaran SYNC TJKT 3 siap!');
-        console.log('📅 Jadwal Senin otomatis dari', formatDateIndonesian(dateStr(getFirstMondayOnOrAfter(START_DATE))));
-        console.log('🔐 Admin:', ADMIN_EMAIL);
-        console.log('💡 Klik sel status pembayaran (saat login Admin) untuk mengubah Lunas/Belum Lunas.');
-        console.log('🏖️ Klik ikon 🟢/🔴 di header kolom (Admin) untuk tandai Libur.');
+        console.log('🚀 Aplikasi siap.');
     </script>
 </body>
 </html>
