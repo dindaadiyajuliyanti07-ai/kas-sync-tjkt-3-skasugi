@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Pembayaran SYNC TJKT 3 angkatan 2024</title>
+
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js">
+    </script>
+
+    <style>
+        :root {
+            --primary: #03045E;
+            --secondary: #007786;
+            --accent: #00B4D8;
+            --light-blue: #90E0EF;
+            --bg-soft: #CAF0F8;
+            --white: #FFFFFF;
+            --danger: #E63946;
+            --success: #2A9D8F;
+            --warning: #F4A261;
+            --gray: #6C757D;
+            --light-gray: #E9ECEF;
+            --dark-text: #1A1A2E;
+            --shadow-sm: 0 2px 8px rgba(3, 4, 94, 0.08);
+            --shadow-md: 0 4px 20px rgba(3, 4, 94, 0.12);
+            --shadow-lg: 0 8px 40px rgba(3, 4, 94, 0.18);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-heading: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            --font-body: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(160deg, #f0f9fc 0%, var(--bg-soft) 30%, #e8f4f8 60%, #f5fafc 100%);
+            background-attachment: fixed;
+            color: var(--dark-text);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ──────────────── HEADER ──────────────── */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #0a0a6e 40%, #0d1b7a 100%);
+            color: var(--white);
+            padding: 1.6rem 1.5rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 24px rgba(3, 4, 94, 0.35);
+            border-bottom: 3px solid var(--accent);
+        }
+        .header-inner {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .header h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.2rem, 2.6vw, 1.75rem);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            background: linear-gradient(180deg, #FFFFFF 0%, #CAF0F8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+            line-height: 1.25;
+        }
+        .header-actions {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .badge-role {
+            font-size: 0.78rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+        }
+        .badge-role.admin {
+            background: rgba(0, 180, 216, 0.3);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* ──────────────── BUTTONS ──────────────── */
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 0.55rem 1.2rem;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0, 180, 216, 0.35);
+        }
+        .btn-primary:hover {
+            background: #009fc4;
+            box-shadow: 0 6px 20px rgba(0, 180, 216, 0.5);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: var(--secondary);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0, 119, 134, 0.3);
+        }
+        .btn-secondary:hover {
+            background: #006370;
+            box-shadow: 0 6px 20px rgba(0, 119, 134, 0.45);
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-sm {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.8rem;
+            border-radius: 18px;
+        }
+        .btn-xs {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 14px;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #c62d3a;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: #fff;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+        }
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #fff;
+        }
+
+        /* ──────────────── MAIN CONTAINER ──────────────── */
+        .main-container {
+            max-width: 1350px;
+            margin: 0 auto;
+            padding: 1.2rem 1rem 2.5rem;
+        }
+
+        /* ──────────────── SUMMARY CARDS ──────────────── */
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.4rem;
+        }
+        .summary-card {
+            background: #fff;
+            border-radius: var(--radius-md);
+            padding: 1.1rem 1.3rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--accent);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .summary-card.expense {
+            border-left-color: var(--danger);
+        }
+        .summary-card.balance {
+            border-left-color: var(--success);
+        }
+        .summary-card .card-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .summary-card .card-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .summary-card .card-sub {
+            font-size: 0.73rem;
+            color: var(--gray);
+            margin-top: 0.15rem;
+        }
+
+        /* ──────────────── TABS ──────────────── */
+        .tab-nav {
+            display: flex;
+            gap: 0.3rem;
+            margin-bottom: 0;
+            flex-wrap: wrap;
+            background: #fff;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            padding: 0.5rem 0.7rem 0;
+            box-shadow: var(--shadow-sm);
+            border-bottom: 2px solid var(--light-gray);
+        }
+        .tab-btn {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.6rem 1.3rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 10px 10px 0 0;
+            color: var(--gray);
+            transition: var(--transition);
+            letter-spacing: 0.02em;
+        }
+        .tab-btn.active {
+            background: var(--bg-soft);
+            color: var(--primary);
+            box-shadow: inset 0 -3px 0 var(--accent);
+        }
+        .tab-btn:hover {
+            color: var(--primary);
+            background: rgba(202, 240, 248, 0.4);
+        }
+        .tab-content {
+            display: none;
+            background: #fff;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            padding: 1.2rem;
+            overflow: hidden;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ──────────────── TABLE ──────────────── */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-height: 60vh;
+            overflow-y: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--light-gray);
+            position: relative;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 900px;
+            font-size: 0.82rem;
+        }
+        table thead {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+        table thead th {
+            background: var(--primary);
+            color: #fff;
+            padding: 0.7rem 0.5rem;
+            font-weight: 600;
+            font-size: 0.73rem;
+            letter-spacing: 0.03em;
+            text-align: center;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+        table thead th.sticky-name {
+            position: sticky;
+            left: 0;
+            z-index: 6;
+            background: #020348;
+            min-width: 150px;
+            text-align: left;
+            padding-left: 1rem;
+        }
+        table tbody td {
+            padding: 0.55rem 0.4rem;
+            text-align: center;
+            border: 1px solid var(--light-gray);
+            white-space: nowrap;
+            transition: background 0.15s;
+            font-size: 0.78rem;
+        }
+        table tbody td.sticky-name {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background: #fff;
+            font-weight: 600;
+            text-align: left;
+            padding-left: 1rem;
+            min-width: 150px;
+            box-shadow: 2px 0 6px rgba(0, 0, 0, 0.04);
+        }
+        table tbody tr:hover td {
+            background: #f8fdff;
+        }
+        table tbody tr:hover td.sticky-name {
+            background: #f0f9fd;
+        }
+        .status-lunas {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+            background: #d4f5e9;
+            color: #1a7a4c;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 70px;
+            text-align: center;
+            border: 1.5px solid transparent;
+        }
+        .status-lunas:hover {
+            border-color: #1a7a4c;
+            box-shadow: 0 2px 8px rgba(26, 122, 76, 0.2);
+        }
+        .status-belum {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+            background: #fde8e8;
+            color: #b91c1c;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 70px;
+            text-align: center;
+            border: 1.5px solid transparent;
+        }
+        .status-belum:hover {
+            border-color: #b91c1c;
+            box-shadow: 0 2px 8px rgba(185, 28, 28, 0.2);
+        }
+        .status-libur {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+            background: #e9ecef;
+            color: #6c757d;
+            min-width: 70px;
+            text-align: center;
+            cursor: default;
+            border: 1.5px solid transparent;
+        }
+        .col-header-nominal {
+            font-size: 0.65rem;
+            font-weight: 400;
+            opacity: 0.85;
+            display: block;
+            margin-top: 2px;
+        }
+        .holiday-toggle {
+            cursor: pointer;
+            font-size: 0.65rem;
+            opacity: 0.7;
+            transition: var(--transition);
+            margin-left: 4px;
+        }
+        .holiday-toggle:hover {
+            opacity: 1;
+            color: #ffd166;
+        }
+        .week-current {
+            background: rgba(0, 180, 216, 0.08) !important;
+        }
+        .week-current td {
+            background: rgba(0, 180, 216, 0.05);
+        }
+
+        /* ──────────────── EXPENSE TABLE ──────────────── */
+        .expense-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+            min-width: 500px;
+        }
+        .expense-table thead th {
+            background: var(--secondary);
+            color: #fff;
+            padding: 0.6rem 0.8rem;
+            font-weight: 600;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .expense-table tbody td {
+            padding: 0.5rem 0.8rem;
+            border: 1px solid var(--light-gray);
+        }
+        .expense-table tbody tr:hover td {
+            background: #f8fdff;
+        }
+
+        /* ──────────────── MODAL ──────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 4, 94, 0.55);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.94);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .modal h3 {
+            font-family: var(--font-heading);
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            font-size: 1.3rem;
+            letter-spacing: -0.01em;
+        }
+        .modal .form-group {
+            margin-bottom: 1rem;
+        }
+        .modal label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--dark-text);
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.02em;
+        }
+        .modal input,
+        .modal textarea,
+        .modal select {
+            width: 100%;
+            padding: 0.6rem 0.9rem;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--light-gray);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            transition: var(--transition);
+            background: #fafdfe;
+        }
+        .modal input:focus,
+        .modal textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
+            background: #fff;
+        }
+        .modal .btn-row {
+            display: flex;
+            gap: 0.6rem;
+            justify-content: flex-end;
+            margin-top: 1.3rem;
+            flex-wrap: wrap;
+        }
+
+        /* ──────────────── QRIS SECTION ──────────────── */
+        .qris-section {
+            background: #fff;
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            border: 2px dashed var(--light-blue);
+        }
+        .qris-section h3 {
+            font-family: var(--font-heading);
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+        .qris-section .announcement-text {
+            font-size: 0.9rem;
+            color: var(--dark-text);
+            margin-bottom: 1rem;
+            padding: 0.7rem 1rem;
+            background: #fffbe6;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--warning);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .qris-section img {
+            max-width: 240px;
+            height: auto;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-sm);
+            margin: 0.5rem 0;
+        }
+        .qris-section .confirm-text {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-top: 0.6rem;
+        }
+        .qris-section .admin-edit-announcement {
+            margin-top: 0.8rem;
+        }
+
+        /* ──────────────── RESPONSIVE ──────────────── */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem 0.8rem;
+            }
+            .header h1 {
+                font-size: 1rem;
+            }
+            .btn {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.9rem;
+            }
+            .summary-row {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 0.6rem;
+            }
+            .summary-card .card-value {
+                font-size: 1.2rem;
+            }
+            .modal {
+                padding: 1.3rem;
+                width: 95%;
+            }
+            table {
+                font-size: 0.7rem;
+                min-width: 700px;
+            }
+            table thead th {
+                font-size: 0.65rem;
+                padding: 0.5rem 0.3rem;
+            }
+            table tbody td {
+                font-size: 0.68rem;
+                padding: 0.4rem 0.25rem;
+            }
+            .status-lunas,
+            .status-belum,
+            .status-libur {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.5rem;
+                min-width: 55px;
+            }
+            .tab-btn {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.8rem;
+            }
+        }
+        @media (max-width: 400px) {
+            .header-actions {
+                gap: 0.3rem;
+            }
+            .btn {
+                font-size: 0.7rem;
+                padding: 0.35rem 0.7rem;
+            }
+            .summary-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.4rem;
+            }
+        }
+
+        /* ──────────────── TOAST ──────────────── */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 300;
+            background: var(--primary);
+            color: #fff;
+            padding: 0.8rem 1.4rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.4s ease, toastOut 0.4s ease 2.5s forwards;
+            letter-spacing: 0.02em;
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+        }
+
+        /* ──────────────── LOADING ──────────────── */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 250;
+            background: rgba(255, 255, 255, 0.6);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            gap: 0.6rem;
+        }
+        .loading-overlay.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════ HEADER ═══════════════ -->
+    <header class="header">
+        <div class="header-inner">
+            <h1>📋 Data Pembayaran SYNC TJKT 3 angkatan 2024</h1>
+            <div class="header-actions">
+                <span class="badge-role" id="roleBadge">👤 Tamu</span>
+                <button class="btn btn-ghost btn-sm" id="btnLogin" onclick="openLoginModal()">🔐 Login Admin</button>
+                <button class="btn btn-ghost btn-sm" id="btnLogout" style="display:none;" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══════════════ MAIN CONTAINER ═══════════════ -->
+    <div class="main-container">
+
+        <!-- ── Summary Cards ── -->
+        <div class="summary-row">
+            <div class="summary-card">
+                <div class="card-label">💰 Total Pemasukan Kas</div>
+                <div class="card-value" id="totalIncome">Rp 0</div>
+                <div class="card-sub">Akumulasi dari siswa Lunas</div>
+            </div>
+            <div class="summary-card expense">
+                <div class="card-label">📤 Total Pengeluaran</div>
+                <div class="card-value" id="totalExpense">Rp 0</div>
+                <div class="card-sub">Catatan pengeluaran kas</div>
+            </div>
+            <div class="summary-card balance">
+                <div class="card-label">💎 Saldo Kas</div>
+                <div class="card-value" id="totalBalance">Rp 0</div>
+                <div class="card-sub">Pemasukan - Pengeluaran</div>
+            </div>
+        </div>
+
+        <!-- ── Tab Navigation ── -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('payment')">📅 Tabel Pembayaran</button>
+            <button class="tab-btn" onclick="switchTab('expense')">📝 Catatan Pengeluaran</button>
+        </div>
+
+        <!-- ── Tab: Tabel Pembayaran ── -->
+        <div class="tab-content active" id="tabPayment">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem; margin-bottom:1rem;">
+                <span style="font-weight:600; color:var(--primary); font-size:0.9rem;">
+                    📅 Jadwal Senin · Kelas 10: Rp5.000 | Kelas 11: Rp2.000 | Kelas 12: Rp5.000
+                </span>
+                <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                    <button class="btn btn-primary btn-sm" id="btnAddStudent" onclick="openAddStudentModal()" disabled>➕ Tambah Siswa</button>
+                    <button class="btn btn-outline btn-sm" onclick="downloadRecap()">📥 Download Rekap Belum Bayar</button>
+                </div>
+            </div>
+            <div class="table-wrapper" id="paymentTableWrapper">
+                <table id="paymentTable">
+                    <thead id="paymentTableHead"></thead>
+                    <tbody id="paymentTableBody"></tbody>
+                </table>
+            </div>
+            <div style="text-align:center; padding:2rem; color:var(--gray);" id="emptyPaymentState">
+                ⏳ Memuat data...
+            </div>
+        </div>
+
+        <!-- ── Tab: Catatan Pengeluaran ── -->
+        <div class="tab-content" id="tabExpense">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem; margin-bottom:1rem;">
+                <span style="font-weight:600; color:var(--primary); font-size:0.9rem;">📝 Daftar Pengeluaran Kas</span>
+                <button class="btn btn-primary btn-sm" id="btnAddExpense" onclick="openExpenseModal()" disabled>➕ Tambah Pengeluaran</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="expense-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Keterangan</th>
+                            <th>Nominal</th>
+                            <th style="text-align:center;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                        <tr><td colspan="4" style="text-align:center; color:var(--gray); padding:2rem;">Belum ada data pengeluaran</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── QRIS & Announcement Section ── -->
+        <div class="qris-section" id="qrisSection">
+            <h3>💳 Informasi Pembayaran</h3>
+            <div class="announcement-text" id="announcementText">
+                Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.
+            </div>
+            <img
+            src="https://via.placeholder.com/300x300.png?text=QRIS+Code+Placeholder"
+            alt="QRIS Code"
+            id="qrisImage"
+            loading="lazy"
+            style="max-width:240px;"
+            >
+            <p class="confirm-text">📱 Setelah membayar harap screenshot dan chat nomor <strong>089529581033</strong> untuk konfirmasi.</p>
+            <div class="admin-edit-announcement" id="adminEditAnnouncement" style="display:none;">
+                <button class="btn btn-sm btn-outline" onclick="openAnnouncementModal()">✏️ Edit Pengumuman</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ MODALS ═══════════════ -->
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <h3>🔐 Login Admin</h3>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="Masukkan email admin">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Masukkan password">
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-outline btn-sm" onclick="closeLoginModal()">Batal</button>
+                <button class="btn btn-primary btn-sm" onclick="login()">Masuk</button>
+            </div>
+            <p style="font-size:0.7rem; color:var(--gray); margin-top:0.8rem; text-align:center;">Tamu tidak perlu login · Hanya melihat</p>
+        </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div class="modal-overlay" id="addStudentModal">
+        <div class="modal">
+            <h3>➕ Tambah Siswa Baru</h3>
+            <div class="form-group">
+                <label>Nama Lengkap Siswa</label>
+                <input type="text" id="newStudentName" placeholder="Masukkan nama siswa">
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-outline btn-sm" onclick="closeAddStudentModal()">Batal</button>
+                <button class="btn btn-primary btn-sm" onclick="addStudent()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Modal (Add / Edit) -->
+    <div class="modal-overlay" id="expenseModal">
+        <div class="modal">
+            <h3 id="expenseModalTitle">📝 Tambah Pengeluaran</h3>
+            <input type="hidden" id="expenseEditId">
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="expenseDate">
+            </div>
+            <div class="form-group">
+                <label>Keterangan</label>
+                <input type="text" id="expenseDesc" placeholder="Contoh: Beli alat tulis kelas">
+            </div>
+            <div class="form-group">
+                <label>Nominal (Rp)</label>
+                <input type="number" id="expenseAmount" placeholder="50000" min="0">
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-outline btn-sm" onclick="closeExpenseModal()">Batal</button>
+                <button class="btn btn-primary btn-sm" onclick="saveExpense()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Modal -->
+    <div class="modal-overlay" id="announcementModal">
+        <div class="modal">
+            <h3>✏️ Edit Pengumuman</h3>
+            <div class="form-group">
+                <label>Teks Pengumuman</label>
+                <textarea id="announcementInput" rows="4" placeholder="Tulis pengumuman..."></textarea>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-outline btn-sm" onclick="closeAnnouncementModal()">Batal</button>
+                <button class="btn btn-primary btn-sm" onclick="saveAnnouncement()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <span class="loading-spinner"></span> Memproses...
+    </div>
+
+    <!-- ═══════════════ SCRIPTS ═══════════════ -->
+    <script>
+        // ──────────────────────────────────────
+        // 🔥 FIREBASE CONFIGURATION
+        // ──────────────────────────────────────
+        // GANTI dengan konfigurasi Firebase project Anda sendiri.
+        // Buka Firebase Console > Project Settings > Web App > Config.
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-PLACEHOLDER-KEY-REPLACE-ME",
+            authDomain: "your-project.firebaseapp.com",
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "000000000000",
+            appId: "1:000000000000:web:xxxxxxxxxxxxxxxxxxxx"
+        };
+
+        // Inisialisasi Firebase
+        let firebaseApp;
+        let database;
+        try {
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            console.log('✅ Firebase terhubung.');
+        } catch (err) {
+            console.error('❌ Gagal inisialisasi Firebase:', err);
+            alert('Firebase belum dikonfigurasi dengan benar. Silakan ganti firebaseConfig dengan data project Anda.');
+        }
+
+        // ──────────────────────────────────────
+        // 🔐 AUTHENTICATION
+        // ──────────────────────────────────────
+        const ADMIN_EMAIL = 'adminsynctkj3@sunangiri.id';
+        const ADMIN_PASSWORD = 'synctkj3_dinda';
+        const AUTH_KEY = 'sync_tjkt3_admin_auth';
+
+        let isAdmin = false;
+
+        function checkAuth() {
+            const stored = localStorage.getItem(AUTH_KEY);
+            if (stored === 'true') {
+                isAdmin = true;
+                updateUIForAdmin();
+            } else {
+                isAdmin = false;
+                updateUIForGuest();
+            }
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                localStorage.setItem(AUTH_KEY, 'true');
+                updateUIForAdmin();
+                closeLoginModal();
+                showToast('✅ Login berhasil! Anda memiliki akses Admin.');
+            } else {
+                showToast('❌ Email atau password salah!');
+            }
+        }
+
+        function logout() {
+            isAdmin = false;
+            localStorage.removeItem(AUTH_KEY);
+            updateUIForGuest();
+            showToast('👋 Anda telah logout. Sekarang mode Tamu.');
+        }
+
+        function updateUIForAdmin() {
+            document.getElementById('roleBadge').textContent = '🛡️ Admin';
+            document.getElementById('roleBadge').classList.add('admin');
+            document.getElementById('btnLogin').style.display = 'none';
+            document.getElementById('btnLogout').style.display = 'inline-flex';
+            document.getElementById('btnAddStudent').disabled = false;
+            document.getElementById('btnAddExpense').disabled = false;
+            document.getElementById('adminEditAnnouncement').style.display = 'block';
+            // Enable clicking on status cells
+            document.querySelectorAll('.status-lunas, .status-belum').forEach(el => {
+                el.style.cursor = 'pointer';
+                el.title = 'Klik untuk ubah status';
+            });
+            renderPaymentTable(); // re-render with admin capabilities
+        }
+
+        function updateUIForGuest() {
+            document.getElementById('roleBadge').textContent = '👤 Tamu';
+            document.getElementById('roleBadge').classList.remove('admin');
+            document.getElementById('btnLogin').style.display = 'inline-flex';
+            document.getElementById('btnLogout').style.display = 'none';
+            document.getElementById('btnAddStudent').disabled = true;
+            document.getElementById('btnAddExpense').disabled = true;
+            document.getElementById('adminEditAnnouncement').style.display = 'none';
+            document.querySelectorAll('.status-lunas, .status-belum').forEach(el => {
+                el.style.cursor = 'default';
+                el.title = '';
+            });
+            renderPaymentTable();
+        }
+
+        // ──────────────────────────────────────
+        // 📅 SCHEDULE GENERATOR
+        // ──────────────────────────────────────
+        const START_DATE = new Date('2024-07-27');
+        const KELAS_11_START = new Date('2025-07-28');
+        const KELAS_12_START = new Date('2026-09-14'); // after Sept 13, 2026
+
+        function getFirstMondayOnOrAfter(date) {
+            const d = new Date(date);
+            const day = d.getDay(); // 0=Minggu, 1=Senin, ...
+            if (day === 1) return new Date(d);
+            const diff = (8 - day) % 7;
+            d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+            return d;
+        }
+
+        function generateMondaySchedule() {
+            const mondays = [];
+            const firstMonday = getFirstMondayOnOrAfter(START_DATE);
+            const today = new Date();
+            const endDate = new Date(today);
+            endDate.setDate(endDate.getDate() + 60); // ~8 minggu ke depan
+            const current = new Date(firstMonday);
+            while (current <= endDate) {
+                mondays.push(new Date(current));
+                current.setDate(current.getDate() + 7);
+            }
+            return mondays;
+        }
+
+        function getNominalForDate(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            if (d < KELAS_11_START) return { kelas: 10, nominal: 5000 };
+            if (d < KELAS_12_START) return { kelas: 11, nominal: 2000 };
+            return { kelas: 12, nominal: 5000 };
+        }
+
+        function formatDateIndonesian(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+
+        function formatDateShort(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${d.getDate()}/${months[d.getMonth()]}/${d.getFullYear().toString().slice(-2)}`;
+        }
+
+        function formatRupiah(num) {
+            return 'Rp ' + Number(num).toLocaleString('id-ID');
+        }
+
+        function dateStr(d) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // ──────────────────────────────────────
+        // 📦 DATA CACHE
+        // ──────────────────────────────────────
+        let cachedStudents = {};
+        let cachedExpenses = {};
+        let cachedHolidays = {};
+        let cachedAnnouncement = '';
+
+        function loadAllData() {
+            if (!database) return;
+            showLoading(true);
+            const promises = [];
+            // Students
+            promises.push(new Promise((resolve) => {
+                database.ref('students').once('value', (snap) => {
+                    cachedStudents = snap.val() || {};
+                    resolve();
+                }, () => { cachedStudents = {};
+                    resolve(); });
+            }));
+            // Expenses
+            promises.push(new Promise((resolve) => {
+                database.ref('expenses').once('value', (snap) => {
+                    cachedExpenses = snap.val() || {};
+                    resolve();
+                }, () => { cachedExpenses = {};
+                    resolve(); });
+            }));
+            // Holidays
+            promises.push(new Promise((resolve) => {
+                database.ref('holidays').once('value', (snap) => {
+                    cachedHolidays = snap.val() || {};
+                    resolve();
+                }, () => { cachedHolidays = {};
+                    resolve(); });
+            }));
+            // Announcement
+            promises.push(new Promise((resolve) => {
+                database.ref('announcement').once('value', (snap) => {
+                    cachedAnnouncement = snap.val() ||
+                        'Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.';
+                    resolve();
+                }, () => {
+                    cachedAnnouncement =
+                        'Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.';
+                    resolve();
+                });
+            }));
+            Promise.all(promises).then(() => {
+                showLoading(false);
+                refreshAllUI();
+            });
+        }
+
+        function refreshAllUI() {
+            renderPaymentTable();
+            renderExpenseTable();
+            updateSummaryCards();
+            updateAnnouncementUI();
+        }
+
+        // ──────────────────────────────────────
+        // 📊 SUMMARY CARDS
+        // ──────────────────────────────────────
+        function updateSummaryCards() {
+            const mondays = generateMondaySchedule();
+            let totalIncome = 0;
+            const studentIds = Object.keys(cachedStudents);
+            mondays.forEach(m => {
+                const ds = dateStr(m);
+                if (cachedHolidays[ds]) return; // skip holidays
+                const nominalInfo = getNominalForDate(ds);
+                let lunasCount = 0;
+                studentIds.forEach(sid => {
+                    const paymentStatus = cachedStudents[sid]?.payments?.[ds] || 'Belum Lunas';
+                    if (paymentStatus === 'Lunas') lunasCount++;
+                });
+                totalIncome += lunasCount * nominalInfo.nominal;
+            });
+            let totalExpense = 0;
+            Object.values(cachedExpenses).forEach(exp => {
+                totalExpense += Number(exp.amount) || 0;
+            });
+            const balance = totalIncome - totalExpense;
+            document.getElementById('totalIncome').textContent = formatRupiah(totalIncome);
+            document.getElementById('totalExpense').textContent = formatRupiah(totalExpense);
+            document.getElementById('totalBalance').textContent = formatRupiah(balance);
+        }
+
+        // ──────────────────────────────────────
+        // 📅 PAYMENT TABLE RENDER
+        // ──────────────────────────────────────
+        function renderPaymentTable() {
+            const thead = document.getElementById('paymentTableHead');
+            const tbody = document.getElementById('paymentTableBody');
+            const emptyState = document.getElementById('emptyPaymentState');
+            const mondays = generateMondaySchedule();
+            const studentIds = Object.keys(cachedStudents);
+            if (studentIds.length === 0 && mondays.length === 0) {
+                emptyState.style.display = 'block';
+                document.getElementById('paymentTableWrapper').style.display = 'none';
+                return;
+            }
+            emptyState.style.display = 'none';
+            document.getElementById('paymentTableWrapper').style.display = 'block';
+            const todayStr = dateStr(new Date());
+            // Build header
+            let headHTML = '<tr><th class="sticky-name">Nama Siswa</th>';
+            mondays.forEach(m => {
+                const ds = dateStr(m);
+                const isHoliday = !!cachedHolidays[ds];
+                const isCurrentWeek = (ds === todayStr) || (m >= getStartOfWeek(new Date()) && m <=
+                    getEndOfWeek(new Date()));
+                const nominalInfo = getNominalForDate(ds);
+                const holidayClass = isHoliday ? ' style="background:#6c757d;"' : '';
+                const weekClass = isCurrentWeek && !isHoliday ? ' style="background:#007786;"' : '';
+                const finalStyle = isHoliday ? holidayClass : (isCurrentWeek ? weekClass : '');
+                headHTML += `<th${finalStyle}>
+              ${formatDateShort(ds)}
+              <span class="col-header-nominal">Rp${nominalInfo.nominal.toLocaleString('id-ID')} (Kls ${nominalInfo.kelas})</span>
+              ${isAdmin ? `<span class="holiday-toggle" onclick="toggleHoliday('${ds}')" title="Tandai/Lepas Libur">${isHoliday ? '🔴' : '🟢'}</span>` : ''}
+              ${isHoliday ? '<br><small style="opacity:0.8;">LIBUR</small>' : ''}
+            </th>`;
+            });
+            headHTML += '</tr>';
+            thead.innerHTML = headHTML;
+
+            // Build body
+            let bodyHTML = '';
+            const sortedIds = studentIds.sort((a, b) => {
+                const nameA = (cachedStudents[a]?.name || '').toLowerCase();
+                const nameB = (cachedStudents[b]?.name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            sortedIds.forEach(sid => {
+                const student = cachedStudents[sid];
+                const name = student?.name || 'Tanpa Nama';
+                bodyHTML += `<tr><td class="sticky-name">${escapeHTML(name)}</td>`;
+                mondays.forEach(m => {
+                    const ds = dateStr(m);
+                    const isHoliday = !!cachedHolidays[ds];
+                    if (isHoliday) {
+                        bodyHTML +=
+                            `<td style="background:#f5f5f5;"><span class="status-libur">Libur</span></td>`;
+                    } else {
+                        const status = student?.payments?.[ds] || 'Belum Lunas';
+                        const statusClass = status === 'Lunas' ? 'status-lunas' : 'status-belum';
+                        const onclickAttr = isAdmin ?
+                            `onclick="togglePaymentStatus('${sid}', '${ds}')"` : '';
+                        bodyHTML +=
+                            `<td><span class="${statusClass}" ${onclickAttr}>${status === 'Lunas' ? '✅ Lunas' : '❌ Belum'}</span></td>`;
+                    }
+                });
+                bodyHTML += '</tr>';
+            });
+            tbody.innerHTML = bodyHTML;
+            updateSummaryCards();
+        }
+
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        function getEndOfWeek(date) {
+            const start = getStartOfWeek(date);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
+            end.setHours(23, 59, 59, 999);
+            return end;
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ──────────────────────────────────────
+        // 🖱️ TOGGLE PAYMENT STATUS (Admin only)
+        // ──────────────────────────────────────
+        function togglePaymentStatus(studentId, dateStr) {
+            if (!isAdmin) return;
+            if (!database) { showToast('⚠️ Database belum terhubung.');
+                return; }
+            const currentStatus = cachedStudents[studentId]?.payments?.[dateStr] || 'Belum Lunas';
+            const newStatus = currentStatus === 'Lunas' ? 'Belum Lunas' : 'Lunas';
+            showLoading(true);
+            database.ref(`students/${studentId}/payments/${dateStr}`).set(newStatus, (err) => {
+                showLoading(false);
+                if (err) {
+                    showToast('❌ Gagal mengubah status: ' + err.message);
+                } else {
+                    if (!cachedStudents[studentId].payments) cachedStudents[studentId].payments = {};
+                    cachedStudents[studentId].payments[dateStr] = newStatus;
+                    renderPaymentTable();
+                    showToast(`✅ Status diubah menjadi "${newStatus}"`);
+                }
+            });
+        }
+
+        // ──────────────────────────────────────
+        // 🏖️ TOGGLE HOLIDAY (Admin only)
+        // ──────────────────────────────────────
+        function toggleHoliday(dateStr) {
+            if (!isAdmin) return;
+            if (!database) { showToast('⚠️ Database belum terhubung.');
+                return; }
+            const isHoliday = !!cachedHolidays[dateStr];
+            if (isHoliday) {
+                // Remove holiday
+                showLoading(true);
+                database.ref(`holidays/${dateStr}`).remove((err) => {
+                    showLoading(false);
+                    if (err) {
+                        showToast('❌ Gagal: ' + err.message);
+                    } else {
+                        delete cachedHolidays[dateStr];
+                        renderPaymentTable();
+                        showToast('🏖️ Tanggal tidak lagi ditandai Libur.');
+                    }
+                });
+            } else {
+                // Add holiday
+                if (confirm(`Tandai ${formatDateIndonesian(dateStr)} sebagai Libur?\nSemua siswa tidak dikenakan tagihan di minggu ini.`)) {
+                    showLoading(true);
+                    database.ref(`holidays/${dateStr}`).set(true, (err) => {
+                        showLoading(false);
+                        if (err) {
+                            showToast('❌ Gagal: ' + err.message);
+                        } else {
+                            cachedHolidays[dateStr] = true;
+                            renderPaymentTable();
+                            showToast('🏖️ Tanggal ditandai Libur.');
+                        }
+                    });
+                }
+            }
+        }
+
+        // ──────────────────────────────────────
+        // 👤 ADD STUDENT (Admin only)
+        // ──────────────────────────────────────
+        function addStudent() {
+            if (!isAdmin || !database) return;
+            const name = document.getElementById('newStudentName').value.trim();
+            if (!name) { showToast('⚠️ Nama siswa tidak boleh kosong!');
+                return; }
+            showLoading(true);
+            const newStudentRef = database.ref('students').push();
+            newStudentRef.set({ name: name, payments: {} }, (err) => {
+                showLoading(false);
+                if (err) {
+                    showToast('❌ Gagal menambah siswa: ' + err.message);
+                } else {
+                    cachedStudents[newStudentRef.key] = { name: name, payments: {} };
+                    closeAddStudentModal();
+                    renderPaymentTable();
+                    showToast('✅ Siswa berhasil ditambahkan!');
+                }
+            });
+        }
+
+        // ──────────────────────────────────────
+        // 💰 EXPENSE CRUD (Admin only)
+        // ──────────────────────────────────────
+        function openExpenseModal(expenseId = null) {
+            if (!isAdmin) return;
+            document.getElementById('expenseModal').classList.add('show');
+            if (expenseId) {
+                document.getElementById('expenseModalTitle').textContent = '✏️ Edit Pengeluaran';
+                document.getElementById('expenseEditId').value = expenseId;
+                const exp = cachedExpenses[expenseId];
+                document.getElementById('expenseDate').value = exp?.date || '';
+                document.getElementById('expenseDesc').value = exp?.description || '';
+                document.getElementById('expenseAmount').value = exp?.amount || '';
+            } else {
+                document.getElementById('expenseModalTitle').textContent = '📝 Tambah Pengeluaran';
+                document.getElementById('expenseEditId').value = '';
+                document.getElementById('expenseDate').value = dateStr(new Date());
+                document.getElementById('expenseDesc').value = '';
+                document.getElementById('expenseAmount').value = '';
+            }
+        }
+
+        function closeExpenseModal() {
+            document.getElementById('expenseModal').classList.remove('show');
+        }
+
+        function saveExpense() {
+            if (!isAdmin || !database) return;
+            const editId = document.getElementById('expenseEditId').value;
+            const dateVal = document.getElementById('expenseDate').value;
+            const desc = document.getElementById('expenseDesc').value.trim();
+            const amount = parseInt(document.getElementById('expenseAmount').value) || 0;
+            if (!dateVal || !desc || amount <= 0) {
+                showToast('⚠️ Semua field harus diisi dengan benar!');
+                return;
+            }
+            const expenseData = { date: dateVal, description: desc, amount: amount };
+            showLoading(true);
+            const callback = (err) => {
+                showLoading(false);
+                if (err) {
+                    showToast('❌ Gagal menyimpan: ' + err.message);
+                } else {
+                    closeExpenseModal();
+                    loadAllData();
+                    showToast('✅ Pengeluaran berhasil disimpan!');
+                }
+            };
+            if (editId) {
+                database.ref(`expenses/${editId}`).update(expenseData, callback);
+            } else {
+                database.ref('expenses').push(expenseData, callback);
+            }
+        }
+
+        function deleteExpense(expenseId) {
+            if (!isAdmin || !database) return;
+            if (!confirm('Hapus pengeluaran ini?')) return;
+            showLoading(true);
+            database.ref(`expenses/${expenseId}`).remove((err) => {
+                showLoading(false);
+                if (err) {
+                    showToast('❌ Gagal menghapus: ' + err.message);
+                } else {
+                    delete cachedExpenses[expenseId];
+                    loadAllData();
+                    showToast('🗑️ Pengeluaran dihapus.');
+                }
+            });
+        }
+
+        function renderExpenseTable() {
+            const tbody = document.getElementById('expenseTableBody');
+            const expenseIds = Object.keys(cachedExpenses);
+            if (expenseIds.length === 0) {
+                tbody.innerHTML =
+                    '<tr><td colspan="4" style="text-align:center; color:var(--gray); padding:2rem;">Belum ada data pengeluaran</td></tr>';
+                return;
+            }
+            // Sort by date descending
+            expenseIds.sort((a, b) => {
+                const da = cachedExpenses[a]?.date || '';
+                const db = cachedExpenses[b]?.date || '';
+                return db.localeCompare(da);
+            });
+            let html = '';
+            expenseIds.forEach(eid => {
+                const exp = cachedExpenses[eid];
+                html += `<tr>
+              <td>${formatDateIndonesian(exp.date)}</td>
+              <td>${escapeHTML(exp.description)}</td>
+              <td><strong>${formatRupiah(exp.amount)}</strong></td>
+              <td style="text-align:center;">
+                ${isAdmin ? `
+                  <button class="btn btn-xs btn-outline" onclick="openExpenseModal('${eid}')">✏️</button>
+                  <button class="btn btn-xs btn-danger" onclick="deleteExpense('${eid}')">🗑️</button>
+                ` : '<span style="color:var(--gray);">-</span>'}
+              </td>
+            </tr>`;
+            });
+            tbody.innerHTML = html;
+            updateSummaryCards();
+        }
+
+        // ──────────────────────────────────────
+        // 📢 ANNOUNCEMENT
+        // ──────────────────────────────────────
+        function updateAnnouncementUI() {
+            document.getElementById('announcementText').textContent = cachedAnnouncement;
+        }
+
+        function openAnnouncementModal() {
+            if (!isAdmin) return;
+            document.getElementById('announcementInput').value = cachedAnnouncement;
+            document.getElementById('announcementModal').classList.add('show');
+        }
+
+        function closeAnnouncementModal() {
+            document.getElementById('announcementModal').classList.remove('show');
+        }
+
+        function saveAnnouncement() {
+            if (!isAdmin || !database) return;
+            const newText = document.getElementById('announcementInput').value.trim();
+            if (!newText) { showToast('⚠️ Pengumuman tidak boleh kosong!');
+                return; }
+            showLoading(true);
+            database.ref('announcement').set(newText, (err) => {
+                showLoading(false);
+                if (err) {
+                    showToast('❌ Gagal: ' + err.message);
+                } else {
+                    cachedAnnouncement = newText;
+                    updateAnnouncementUI();
+                    closeAnnouncementModal();
+                    showToast('✅ Pengumuman diperbarui!');
+                }
+            });
+        }
+
+        // ──────────────────────────────────────
+        // 📥 DOWNLOAD RECAP BELUM BAYAR
+        // ──────────────────────────────────────
+        function downloadRecap() {
+            const mondays = generateMondaySchedule();
+            const todayStr = dateStr(new Date());
+            const studentIds = Object.keys(cachedStudents);
+            if (studentIds.length === 0) {
+                showToast('⚠️ Belum ada data siswa.');
+                return;
+            }
+            let recapLines = [];
+            recapLines.push('═══════════════════════════════════════');
+            recapLines.push('  REKAP TUNGGAKAN KAS');
+            recapLines.push('  SYNC TJKT 3 ANGKATAN 2024');
+            recapLines.push('  Per: ' + formatDateIndonesian(todayStr));
+            recapLines.push('═══════════════════════════════════════');
+            recapLines.push('');
+            let grandTotal = 0;
+            const sortedIds = studentIds.sort((a, b) => {
+                const nameA = (cachedStudents[a]?.name || '').toLowerCase();
+                const nameB = (cachedStudents[b]?.name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            sortedIds.forEach(sid => {
+                const student = cachedStudents[sid];
+                const name = student?.name || 'Tanpa Nama';
+                let totalTunggakan = 0;
+                const rincian = [];
+                mondays.forEach(m => {
+                    const ds = dateStr(m);
+                    if (ds > todayStr) return; // hanya sampai hari ini
+                    if (cachedHolidays[ds]) return; // skip libur
+                    const status = student?.payments?.[ds] || 'Belum Lunas';
+                    if (status !== 'Lunas') {
+                        const nominalInfo = getNominalForDate(ds);
+                        totalTunggakan += nominalInfo.nominal;
+                        rincian.push(`    - ${formatDateIndonesian(ds)}: Rp${nominalInfo.nominal.toLocaleString('id-ID')} (Belum Lunas)`);
+                    }
+                });
+                if (totalTunggakan > 0) {
+                    recapLines.push('───────────────────────────────────────');
+                    recapLines.push(`  Nama: ${name}`);
+                    recapLines.push(`  Total Tunggakan: ${formatRupiah(totalTunggakan)}`);
+                    recapLines.push(`  Rincian:`);
+                    recapLines.push(...rincian);
+                    recapLines.push('');
+                    grandTotal += totalTunggakan;
+                }
+            });
+            recapLines.push('═══════════════════════════════════════');
+            recapLines.push(`  GRAND TOTAL TUNGGAKAN: ${formatRupiah(grandTotal)}`);
+            recapLines.push(`  Jumlah Siswa Menunggak: ${sortedIds.filter(sid => {
+        let tt = 0;
+        const student = cachedStudents[sid];
+        mondays.forEach(m => {
+            const ds = dateStr(m);
+            if (ds > todayStr) return;
+            if (cachedHolidays[ds]) return;
+            const status = student?.payments?.[ds] || 'Belum Lunas';
+            if (status !== 'Lunas') tt += getNominalForDate(ds).nominal;
+        });
+        return tt > 0;
+    }).length}`);
+            recapLines.push('═══════════════════════════════════════');
+            recapLines.push('');
+            recapLines.push('Dihasilkan oleh: Data Pembayaran SYNC TJKT 3');
+            recapLines.push(`Tanggal unduh: ${new Date().toLocaleString('id-ID')}`);
+
+            const blob = new Blob([recapLines.join('\n')], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Rekap_Tunggakan_SYNC_TJKT3_${todayStr}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('📥 Rekap berhasil diunduh!');
+        }
+
+        // ──────────────────────────────────────
+        // 🔄 TAB SWITCHING
+        // ──────────────────────────────────────
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (tabName === 'payment') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tabPayment').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tabExpense').classList.add('active');
+            }
+        }
+
+        // ──────────────────────────────────────
+        // 🪟 MODAL OPEN/CLOSE
+        // ──────────────────────────────────────
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.add('show');
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('show');
+        }
+
+        function openAddStudentModal() {
+            if (!isAdmin) return;
+            document.getElementById('newStudentName').value = '';
+            document.getElementById('addStudentModal').classList.add('show');
+        }
+
+        function closeAddStudentModal() {
+            document.getElementById('addStudentModal').classList.remove('show');
+        }
+
+        // ──────────────────────────────────────
+        // 🔔 TOAST NOTIFICATION
+        // ──────────────────────────────────────
+        function showToast(message) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+        }
+
+        // ──────────────────────────────────────
+        // ⏳ LOADING OVERLAY
+        // ──────────────────────────────────────
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) overlay.classList.add('show');
+            else overlay.classList.remove('show');
+        }
+
+        // ──────────────────────────────────────
+        // ⌨️ KEYBOARD SHORTCUTS
+        // ──────────────────────────────────────
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove(
+                    'show'));
+            }
+            // Enter key in login modal
+            if (e.key === 'Enter' && document.getElementById('loginModal').classList.contains('show')) {
+                login();
+            }
+        });
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('show');
+            });
+        });
+
+        // ──────────────────────────────────────
+        // 🚀 INITIALIZATION
+        // ──────────────────────────────────────
+        function init() {
+            checkAuth();
+            if (database) {
+                loadAllData();
+            } else {
+                document.getElementById('emptyPaymentState').textContent =
+                    '⚠️ Firebase belum dikonfigurasi. Silakan ganti firebaseConfig dengan data project Anda.';
+                document.getElementById('emptyPaymentState').style.display = 'block';
+                document.getElementById('paymentTableWrapper').style.display = 'none';
+            }
+        }
+
+        // Realtime listener for live updates
+        function setupRealtimeListeners() {
+            if (!database) return;
+            database.ref('students').on('value', (snap) => {
+                cachedStudents = snap.val() || {};
+                renderPaymentTable();
+            });
+            database.ref('expenses').on('value', (snap) => {
+                cachedExpenses = snap.val() || {};
+                renderExpenseTable();
+            });
+            database.ref('holidays').on('value', (snap) => {
+                cachedHolidays = snap.val() || {};
+                renderPaymentTable();
+            });
+            database.ref('announcement').on('value', (snap) => {
+                cachedAnnouncement = snap.val() ||
+                    'Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.';
+                updateAnnouncementUI();
+            });
+        }
+
+        // Start everything
+        init();
+        setupRealtimeListeners();
+
+        console.log('🚀 Aplikasi Data Pembayaran SYNC TJKT 3 siap!');
+        console.log('📅 Jadwal Senin otomatis dari', formatDateIndonesian(dateStr(getFirstMondayOnOrAfter(START_DATE))));
+        console.log('🔐 Admin:', ADMIN_EMAIL);
+        console.log('💡 Klik sel status pembayaran (saat login Admin) untuk mengubah Lunas/Belum Lunas.');
+        console.log('🏖️ Klik ikon 🟢/🔴 di header kolom (Admin) untuk tandai Libur.');
+    </script>
+</body>
+</html>
