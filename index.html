@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Pembayaran SYNC TJKT 3 angkatan 2024</title>
+    
+    <!-- STYLE / CSS (GABUNG DI SINI) -->
+    <style>
+        :root {
+            --primary-dark: #03045E;
+            --secondary-teal: #007786;
+            --accent-blue: #00B4D8;
+            --light-blue: #90E0EF;
+            --bg-soft: #CAF0F8;
+            --white: #FFFFFF;
+            --text-dark: #333333;
+            --danger: #e63946;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-soft);
+            color: var(--text-dark);
+        }
+
+        header {
+            background-color: var(--primary-dark);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        button {
+            background-color: var(--secondary-teal);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        button:hover { background-color: var(--primary-dark); }
+        button.btn-secondary { background-color: var(--light-blue); color: var(--primary-dark); }
+        button.btn-accent { background-color: var(--accent-blue); }
+
+        .hidden { display: none !important; }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--accent-blue);
+        }
+
+        .card h3 { font-size: 1rem; color: var(--secondary-teal); margin-bottom: 0.5rem; }
+        .card p { font-size: 1.5rem; font-weight: bold; color: var(--primary-dark); }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .tab-btn {
+            background-color: var(--light-blue);
+            color: var(--primary-dark);
+            padding: 0.8rem 1.5rem;
+        }
+        .tab-btn.active {
+            background-color: var(--primary-dark);
+            color: var(--white);
+        }
+
+        .tab-content {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--light-blue);
+        }
+
+        th {
+            background-color: var(--secondary-teal);
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        tr:hover { background-color: var(--bg-soft); }
+
+        .status-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+        .status-lunas { background-color: var(--secondary-teal); color: white; }
+        .status-belum { background-color: var(--danger); color: white; }
+        .status-libur { background-color: #888888; color: white; cursor: not-allowed; }
+
+        .payment-info {
+            margin-top: 2rem;
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .announcement-box { margin-bottom: 2rem; }
+        .announcement-box h3 { color: var(--primary-dark); margin-bottom: 0.5rem; }
+        .announcement-box p { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 1rem;}
+
+        .qris-container img {
+            max-width: 100%;
+            height: auto;
+            border: 3px solid var(--accent-blue);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .qris-warning {
+            color: var(--danger);
+            font-size: 1.1rem;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 4, 94, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .modal-content input {
+            padding: 0.8rem;
+            border: 1px solid var(--light-blue);
+            border-radius: 6px;
+            outline: none;
+        }
+
+        @media (max-width: 768px) {
+            .header-container { flex-direction: column; text-align: center; }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- KONTEN HTML -->
+    <header>
+        <div class="header-container">
+            <h1>Data Pembayaran SYNC TJKT 3 angkatan 2024</h1>
+            <div class="user-controls">
+                <span id="user-status">Status: Tamu (Read-Only)</span>
+                <button id="btn-login-modal">Login Admin</button>
+                <button id="btn-logout" class="hidden">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Login Admin</h2>
+            <input type="email" id="login-email" placeholder="Email Admin">
+            <input type="password" id="login-password" placeholder="Password">
+            <button id="btn-login-submit">Login</button>
+            <button id="btn-close-modal" class="btn-secondary">Batal</button>
+        </div>
+    </div>
+
+    <main>
+        <section class="summary-cards">
+            <div class="card">
+                <h3>Total Pemasukan Kas</h3>
+                <p id="total-pemasukan">Rp 0</p>
+            </div>
+            <div class="card">
+                <h3>Total Pengeluaran</h3>
+                <p id="total-pengeluaran">Rp 0</p>
+            </div>
+            <div class="card">
+                <h3>Sisa Saldo Kas</h3>
+                <p id="sisa-saldo">Rp 0</p>
+            </div>
+        </section>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('kas')">Data Kas Siswa</button>
+            <button class="tab-btn" onclick="switchTab('pengeluaran')">Catatan Pengeluaran</button>
+        </div>
+
+        <section id="tab-kas" class="tab-content">
+            <div class="action-bar">
+                <button id="btn-add-student" class="admin-only hidden">+ Tambah Siswa</button>
+                <button id="btn-set-holiday" class="admin-only hidden">Set Libur Minggu Ini</button>
+                <button id="btn-download" class="btn-accent">Unduh Rekap Tunggakan (CSV)</button>
+            </div>
+            <div class="table-responsive">
+                <table id="tabel-kas">
+                    <thead>
+                        <tr id="tabel-header-row">
+                            <th>Nama Siswa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-body-kas"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="tab-pengeluaran" class="tab-content hidden">
+            <div class="action-bar admin-only hidden">
+                <button id="btn-add-expense">+ Tambah Pengeluaran</button>
+            </div>
+            <div class="table-responsive">
+                <table id="tabel-pengeluaran">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Keterangan</th>
+                            <th>Nominal (Rp)</th>
+                            <th class="admin-only hidden">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-body-pengeluaran"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="payment-info">
+            <div class="announcement-box">
+                <h3>Informasi Pembayaran</h3>
+                <p id="teks-pengumuman">Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.</p>
+                <button id="btn-edit-pengumuman" class="admin-only hidden btn-secondary">Edit Pengumuman</button>
+            </div>
+            
+            <div class="qris-container">
+                <img src="https://via.placeholder.com/250x300?text=QRIS+Placeholder" alt="QRIS Pembayaran Kas" id="img-qris">
+                <p class="qris-warning"><strong>Setelah membayar harap screenshot dan chat nomor 089529581033 untuk konfirmasi.</strong></p>
+            </div>
+        </section>
+    </main>
+
+    <!-- SDK Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <!-- JAVASCRIPT / LOGIKA (GABUNG DI SINI) -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let isAdmin = false;
+        let datesArray = [];
+        let studentsData = {};
+
+        function getNominalForDate(dateStr) {
+            const checkDate = new Date(dateStr);
+            const date11Start = new Date('2025-07-28');
+            const date12Start = new Date('2026-09-14');
+
+            if (checkDate >= date12Start) {
+                return 5000;
+            } else if (checkDate >= date11Start) {
+                return 2000;
+            } else {
+                return 5000;
+            }
+        }
+
+        function generateMondays() {
+            let startDate = new Date('2024-07-27');
+            while (startDate.getDay() !== 1) {
+                startDate.setDate(startDate.getDate() + 1);
+            }
+            
+            let today = new Date();
+            datesArray = [];
+            let currentDate = new Date(startDate);
+
+            while (currentDate <= today || datesArray.length < 1) {
+                datesArray.push(currentDate.toISOString().split('T')[0]);
+                currentDate.setDate(currentDate.getDate() + 7);
+            }
+            renderTableHeader();
+        }
+
+        document.getElementById('btn-login-modal').addEventListener('click', () => {
+            document.getElementById('login-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-close-modal').addEventListener('click', () => {
+            document.getElementById('login-modal').classList.add('hidden');
+        });
+
+        document.getElementById('btn-login-submit').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+
+            if (email === "adminsynctkj3@sunangiri.id" && pass === "synctkj3_dinda") {
+                isAdmin = true;
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('user-status').innerText = "Status: Admin";
+                document.getElementById('btn-login-modal').classList.add('hidden');
+                document.getElementById('btn-logout').classList.remove('hidden');
+                
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+                alert("Login Berhasil! Akses Admin Terbuka.");
+                renderTableBody();
+            } else {
+                alert("Email atau Password salah!");
+            }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            isAdmin = false;
+            document.getElementById('user-status').innerText = "Status: Tamu (Read-Only)";
+            document.getElementById('btn-login-modal').classList.remove('hidden');
+            document.getElementById('btn-logout').classList.add('hidden');
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+            renderTableBody();
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            event.currentTarget.classList.add('active');
+        }
+
+        function renderTableHeader() {
+            const headerRow = document.getElementById('tabel-header-row');
+            headerRow.innerHTML = '<th>Nama Siswa</th>';
+            datesArray.forEach(date => {
+                headerRow.innerHTML += `<th>${date} <br><small>(Rp${getNominalForDate(date)})</small></th>`;
+            });
+        }
+
+        function renderTableBody() {
+            studentsData = {
+                "1": { nama: "Siswa A", pembayaran: { "2024-07-29": "Lunas", "2024-08-05": "Belum" } },
+                "2": { nama: "Siswa B", pembayaran: { "2024-07-29": "Lunas", "2024-08-05": "Lunas" } }
+            };
+
+            const tbody = document.getElementById('tabel-body-kas');
+            tbody.innerHTML = '';
+
+            let totalPemasukan = 0;
+
+            Object.keys(studentsData).forEach(id => {
+                let student = studentsData[id];
+                let row = `<tr><td><strong>${student.nama}</strong></td>`;
+                
+                datesArray.forEach(date => {
+                    let status = student.pembayaran[date] || "Belum";
+                    let nominal = getNominalForDate(date);
+                    
+                    if (status === "Lunas") totalPemasukan += nominal;
+
+                    let btnClass = status === "Lunas" ? "status-lunas" : (status === "Libur" ? "status-libur" : "status-belum");
+                    
+                    if (isAdmin) {
+                        row += `<td><button class="status-btn ${btnClass}" onclick="toggleStatus('${id}', '${date}', '${status}')">${status}</button></td>`;
+                    } else {
+                        row += `<td><span class="status-btn ${btnClass}">${status}</span></td>`;
+                    }
+                });
+                row += `</tr>`;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('total-pemasukan').innerText = `Rp ${totalPemasukan.toLocaleString('id-ID')}`;
+            calculateSaldo(totalPemasukan);
+        }
+
+        window.toggleStatus = function(studentId, date, currentStatus) {
+            if (!isAdmin) return;
+            let nextStatus = currentStatus === "Belum" ? "Lunas" : "Belum";
+            alert(`Status ${studentId} pada ${date} diubah menjadi ${nextStatus}`);
+            studentsData[studentId].pembayaran[date] = nextStatus;
+            renderTableBody();
+        };
+
+        function calculateSaldo(pemasukan) {
+            let totalPengeluaran = 0; 
+            document.getElementById('total-pengeluaran').innerText = `Rp ${totalPengeluaran.toLocaleString('id-ID')}`;
+            let saldo = pemasukan - totalPengeluaran;
+            document.getElementById('sisa-saldo').innerText = `Rp ${saldo.toLocaleString('id-ID')}`;
+        }
+
+        document.getElementById('btn-download').addEventListener('click', () => {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Nama Siswa,Total Tunggakan (Rp)\n";
+
+            Object.keys(studentsData).forEach(id => {
+                let student = studentsData[id];
+                let tunggakan = 0;
+                
+                datesArray.forEach(date => {
+                    let status = student.pembayaran[date] || "Belum";
+                    if (status === "Belum") {
+                        tunggakan += getNominalForDate(date);
+                    }
+                });
+                
+                csvContent += `${student.nama},${tunggakan}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Rekap_Tunggakan_Kas_TJKT3.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        document.getElementById('btn-edit-pengumuman').addEventListener('click', () => {
+            if(!isAdmin) return;
+            let currentText = document.getElementById('teks-pengumuman').innerText;
+            let newText = prompt("Masukkan Pengumuman Baru:", currentText);
+            if (newText) {
+                document.getElementById('teks-pengumuman').innerText = newText;
+            }
+        });
+
+        window.onload = () => {
+            generateMondays();
+            renderTableBody();
+        };
+    </script>
+</body>
+</html>
