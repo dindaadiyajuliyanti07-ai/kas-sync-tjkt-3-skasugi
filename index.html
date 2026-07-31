@@ -248,20 +248,15 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Konfigurasi Tanggal & Senin Otomatis Mulai 27 Juli 2024
         const startDate = new Date('2024-07-27');
         
-        // Buat daftar hari Senin otomatis sampai minggu berjalan (atau minimal 12 minggu ke depan)
         function generateMondays() {
             const mondays = [];
             let current = new Date(startDate);
-            // Cari senin pertama atau langsung dari 27 Juli 2024
             while (current.getDay() !== 1) {
                 current.setDate(current.getDate() + 1);
             }
-            
             const today = new Date();
-            // Generate sampai hari Senin minggu ini / atau minimal 20 minggu ke depan
             while (current <= today || mondays.length < 15) {
                 mondays.push(new Date(current));
                 current.setDate(current.getDate() + 7);
@@ -271,22 +266,20 @@
 
         const mondaysList = generateMondays();
 
-        // Fungsi Penentuan Nominal Berdasarkan Tanggal (Kelas 10, 11, 12)
         function getNominalByDate(dateObj) {
             const time = dateObj.getTime();
             const class11Start = new Date('2025-07-28').getTime();
-            const class12Start = new Date('2026-09-14').getTime(); // Setelah 13 Sept 2026
+            const class12Start = new Date('2026-09-14').getTime();
 
             if (time >= class12Start) {
-                return 5000; // Kelas 12
+                return 5000;
             } else if (time >= class11Start) {
-                return 2000; // Kelas 11 (28 Juli 2025 s.d 13 Sept 2026)
+                return 2000;
             } else {
-                return 5000; // Kelas 10 (Mulai 27 Juli 2024)
+                return 5000;
             }
         }
 
-        // State Data Utama (Disimpan di LocalStorage agar permanen di browser)
         let isAdmin = localStorage.getItem('isAdminSYNC') === 'true';
         let isUnpaidViewActive = false;
 
@@ -306,7 +299,6 @@
 
         let announcementText = localStorage.getItem('sync_announcement') || "Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.";
 
-        // Inisialisasi Tampilan Saat Halaman Dimuat
         window.onload = function() {
             updateAuthUI();
             renderTable();
@@ -315,18 +307,16 @@
             document.getElementById('announcementText').innerText = announcementText;
         };
 
-        // Render Tabel Kas
         function renderTable() {
             const thead = document.getElementById('tableHead');
             const tbody = document.getElementById('tableBody');
             const tableTitle = document.getElementById('tableTitle');
 
-            // Header Tabel
             let headerHTML = `<tr>
                 <th class="p-3 text-center w-12">No</th>
                 <th class="p-3">Nama Siswa</th>`;
             
-            mondaysList.forEach((date, idx) => {
+            mondaysList.forEach((date) => {
                 const dateStr = date.toISOString().split('T')[0];
                 const nominal = getNominalByDate(date);
                 headerHTML += `<th class="p-3 text-center whitespace-nowrap">Senin<br><span class="text-[10px] font-normal opacity-80">${dateStr}</span><br><span class="text-[9px] bg-white/20 px-1 rounded">Rp ${nominal}</span></th>`;
@@ -336,14 +326,12 @@
             headerHTML += `</tr>`;
             thead.innerHTML = headerHTML;
 
-            // Filter Siswa jika mode "Belum Bayar" aktif
             let displayStudents = [...students];
             if (isUnpaidViewActive && isAdmin) {
                 tableTitle.innerText = "Daftar Siswa Belum Bayar (Sampai Hari Ini)";
                 const todayStr = new Date().toISOString().split('T')[0];
                 
                 displayStudents = students.filter(student => {
-                    // Cek apakah ada minggu lalu/hari ini yang belum lunas (selain libur)
                     let hasUnpaid = false;
                     mondaysList.forEach(date => {
                         const dateStr = date.toISOString().split('T')[0];
@@ -360,7 +348,6 @@
                 tableTitle.innerText = "Tabel Rekap Pembayaran Kas Mingguan";
             }
 
-            // Body Tabel
             let bodyHTML = '';
             if (displayStudents.length === 0) {
                 bodyHTML = `<tr><td colspan="${mondaysList.length + 3}" class="p-6 text-center text-slate-400 italic">Tidak ada data siswa untuk ditampilkan.</td></tr>`;
@@ -369,307 +356,4 @@
                     let totalPaid = 0;
                     let rowHTML = `<tr class="hover:bg-slate-50/80 transition">
                         <td class="p-3 text-center font-medium text-slate-500">${index + 1}</td>
-                        <td class="p-3 font-semibold text-primary whitespace-nowrap">${student.name}</td>`;
-                    
-                    mondaysList.forEach(date => {
-                        const dateStr = date.toISOString().split('T')[0];
-                        const nominal = getNominalByDate(date);
-                        const status = student.payments[dateStr] || 'Belum Lunas';
-
-                        if (status === 'Lunas') totalPaid += nominal;
-
-                        let badgeColor = 'bg-rose-100 text-rose-700 border-rose-200';
-                        if (status === 'Lunas') badgeColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-                        if (status === 'Libur') badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
-
-                        if (isAdmin) {
-                            rowHTML += `<td class="p-2 text-center">
-                                <button onclick="togglePaymentStatus(${student.id}, '${dateStr}')" class="px-2.5 py-1 rounded-lg text-xs font-bold border ${badgeColor} transition shadow-2xs hover:opacity-80">
-                                    ${status}
-                                </button>
-                            </td>`;
-                        } else {
-                            rowHTML += `<td class="p-2 text-center">
-                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${badgeColor} inline-block">
-                                    ${status}
-                                </span>
-                            </td>`;
-                        }
-                    });
-
-                    rowHTML += `<td class="p-3 text-center font-bold text-secondary">Rp ${totalPaid.toLocaleString('id-ID')}</td>`;
-                    
-                    if (isAdmin) {
-                        rowHTML += `<td class="p-3 text-center">
-                            <button onclick="deleteStudent(${student.id})" class="text-rose-500 hover:text-rose-700 p-1 text-xs font-medium">Hapus</button>
-                        </td>`;
-                    }
-                    rowHTML += `</tr>`;
-                    bodyHTML += rowHTML;
-                });
-            }
-            tbody.innerHTML = bodyHTML;
-
-            calculateFinancials();
-        }
-
-        // Kalkulasi Keuangan Otomatis
-        function calculateFinancials() {
-            let totalPemasukan = 0;
-            students.forEach(student => {
-                mondaysList.forEach(date => {
-                    const dateStr = date.toISOString().split('T')[0];
-                    const nominal = getNominalByDate(date);
-                    if (student.payments[dateStr] === 'Lunas') {
-                        totalPemasukan += nominal;
-                    }
-                });
-            });
-
-            let totalPengeluaran = 0;
-            expenses.forEach(exp => {
-                totalPengeluaran += Number(exp.amount);
-            });
-
-            const saldo = totalPemasukan - totalPengeluaran;
-
-            document.getElementById('totalPemasukan').innerText = `Rp ${totalPemasukan.toLocaleString('id-ID')}`;
-            document.getElementById('totalPengeluaran').innerText = `Rp ${totalPengeluaran.toLocaleString('id-ID')}`;
-            document.getElementById('saldoKas').innerText = `Rp ${saldo.toLocaleString('id-ID')}`;
-        }
-
-        // Ubah Status Pembayaran (Lunas -> Belum Lunas -> Libur -> Lunas)
-        function togglePaymentStatus(studentId, dateStr) {
-            const student = students.find(s => s.id === studentId);
-            if (!student) return;
-
-            const current = student.payments[dateStr] || 'Belum Lunas';
-            let next = 'Lunas';
-            if (current === 'Belum Lunas') next = 'Lunas';
-            else if (current === 'Lunas') next = 'Libur';
-            else next = 'Belum Lunas';
-
-            student.payments[dateStr] = next;
-            saveData();
-            addLog(`Admin mengubah status kas ${student.name} pada ${dateStr} menjadi ${next}.`);
-            renderTable();
-        }
-
-        // Render Pengeluaran
-        function renderExpenses() {
-            const tbody = document.getElementById('expenseTableBody');
-            let html = '';
-            if (expenses.length === 0) {
-                html = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Belum ada catatan pengeluaran.</td></tr>`;
-            } else {
-                expenses.forEach(exp => {
-                    html += `<tr class="hover:bg-slate-50">
-                        <td class="p-2.5 whitespace-nowrap">${exp.date}</td>
-                        <td class="p-2.5 font-medium text-slate-700">${exp.desc}</td>
-                        <td class="p-2.5 font-bold text-rose-600">Rp ${Number(exp.amount).toLocaleString('id-ID')}</td>`;
-                    if(isAdmin) {
-                        html += `<td class="p-2.5 text-center"><button onclick="deleteExpense(${exp.id})" class="text-rose-500 hover:underline">Hapus</button></td>`;
-                    } else {
-                        html += `<td class="p-2.5 text-center action-col hidden">-</td>`;
-                    }
-                    html += `</tr>`;
-                });
-            }
-            tbody.innerHTML = html;
-        }
-
-        // Render Log Riwayat Edit
-        function renderLogs() {
-            const container = document.getElementById('logContainer');
-            let html = '';
-            logs.slice().reverse().forEach(log => {
-                html += `<div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs space-y-1">
-                    <span class="text-[10px] text-slate-400 block">${log.time}</span>
-                    <p class="text-slate-700 font-medium">${log.text}</p>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function addLog(text) {
-            const now = new Date();
-            const timeStr = now.toISOString().slice(0, 16).replace('T', ' ');
-            logs.push({ time: timeStr, text: text });
-            localStorage.setItem('sync_logs', JSON.stringify(logs));
-            renderLogs();
-        }
-
-        function saveData() {
-            localStorage.setItem('sync_students', JSON.stringify(students));
-            localStorage.setItem('sync_expenses', JSON.stringify(expenses));
-        }
-
-        // Autentikasi Admin Sederhana
-        function toggleAuthModal() {
-            if (isAdmin) {
-                if(confirm("Yakin ingin keluar dari akun Admin?")) {
-                    isAdmin = false;
-                    localStorage.setItem('isAdminSYNC', 'false');
-                    isUnpaidViewActive = false;
-                    updateAuthUI();
-                    renderTable();
-                    renderExpenses();
-                }
-            } else {
-                document.getElementById('authModal').classList.toggle('hidden');
-            }
-        }
-
-        function processLogin() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const pass = document.getElementById('loginPass').value.trim();
-
-            if (email === 'adminsynctkj3@sunangiri.id' && pass === 'synctkj3_dinda') {
-                isAdmin = true;
-                localStorage.setItem('isAdminSYNC', 'true');
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPass').value = '';
-                updateAuthUI();
-                renderTable();
-                renderExpenses();
-                addLog('Admin berhasil login ke sistem.');
-            } else {
-                alert('Email atau Password Admin salah!');
-            }
-        }
-
-        function updateAuthUI() {
-            const badge = document.getElementById('userStatusBadge');
-            const authBtn = document.getElementById('authBtn');
-            const adminPanel = document.getElementById('adminPanel');
-            const editAnnBtn = document.getElementById('editAnnouncementBtn');
-            const actionCols = document.querySelectorAll('.action-col');
-
-            if (isAdmin) {
-                badge.innerText = "Status: Admin (Full Access)";
-                badge.className = "text-xs bg-emerald-500 text-white px-3 py-1 rounded-full font-medium shadow-2xs";
-                authBtn.innerText = "Logout Admin";
-                authBtn.className = "bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow";
-                adminPanel.classList.remove('hidden');
-                editAnnBtn.classList.remove('hidden');
-                actionCols.forEach(el => el.classList.remove('hidden'));
-            } else {
-                badge.innerText = "Status: Tamu (Read-Only)";
-                badge.className = "text-xs bg-white/20 px-3 py-1 rounded-full font-medium";
-                authBtn.innerText = "Login Admin";
-                authBtn.className = "bg-[#00B4D8] hover:bg-[#007786] text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow";
-                adminPanel.classList.add('hidden');
-                editAnnBtn.classList.add('hidden');
-                actionCols.forEach(el => el.classList.add('hidden'));
-            }
-        }
-
-        // Fitur Filter Belum Bayar
-        function toggleUnpaidView() {
-            isUnpaidViewActive = true;
-            document.getElementById('unpaidToggleBtn').classList.add('hidden');
-            document.getElementById('fullDataBtn').classList.remove('hidden');
-            renderTable();
-        }
-
-        function resetToFullData() {
-            isUnpaidViewActive = false;
-            document.getElementById('unpaidToggleBtn').classList.remove('hidden');
-            document.getElementById('fullDataBtn').classList.add('hidden');
-            renderTable();
-        }
-
-        // Modal Siswa
-        function openAddStudentModal() { document.getElementById('addStudentModal').classList.remove('hidden'); }
-        function closeAddStudentModal() { document.getElementById('addStudentModal').classList.add('hidden'); }
-        function saveNewStudent() {
-            const name = document.getElementById('newStudentName').value.trim();
-            if(!name) return alert('Nama siswa tidak boleh kosong!');
-            const newId = students.length > 0 ? students[students.length - 1].id + 1 : 1;
-            students.push({ id: newId, name: name, payments: {} });
-            saveData();
-            addLog(`Admin menambahkan siswa baru: ${name}`);
-            document.getElementById('newStudentName').value = '';
-            closeAddStudentModal();
-            renderTable();
-        }
-        function deleteStudent(id) {
-            if(confirm("Hapus siswa ini dari daftar kas?")) {
-                students = students.filter(s => s.id !== id);
-                saveData();
-                addLog(`Admin menghapus data siswa ID: ${id}`);
-                renderTable();
-            }
-        }
-
-        // Modal Pengeluaran
-        function openAddExpenseModal() { document.getElementById('addExpenseModal').classList.remove('hidden'); }
-        function closeAddExpenseModal() { document.getElementById('addExpenseModal').classList.add('hidden'); }
-        function saveNewExpense() {
-            const date = document.getElementById('expenseDate').value;
-            const desc = document.getElementById('expenseDesc').value.trim();
-            const amount = document.getElementById('expenseAmount').value;
-
-            if(!date || !desc || !amount) return alert('Semua field pengeluaran harus diisi!');
-            const newId = expenses.length > 0 ? expenses[expenses.length - 1].id + 1 : 1;
-            expenses.push({ id: newId, date, desc, amount: Number(amount) });
-            saveData();
-            addLog(`Admin mencatat pengeluaran: "${desc}" sebesar Rp ${Number(amount).toLocaleString('id-ID')}`);
-            
-            document.getElementById('expenseDate').value = '';
-            document.getElementById('expenseDesc').value = '';
-            document.getElementById('expenseAmount').value = '';
-            closeAddExpenseModal();
-            renderExpenses();
-            calculateFinancials();
-        }
-        function deleteExpense(id) {
-            if(confirm("Hapus catatan pengeluaran ini?")) {
-                expenses = expenses.filter(e => e.id !== id);
-                saveData();
-                addLog(`Admin menghapus data pengeluaran ID: ${id}`);
-                renderExpenses();
-                calculateFinancials();
-            }
-        }
-
-        // Modal Pengumuman
-        function openEditAnnouncementModal() {
-            document.getElementById('announcementInput').value = announcementText;
-            document.getElementById('editAnnouncementModal').classList.remove('hidden');
-        }
-        function closeEditAnnouncementModal() { document.getElementById('editAnnouncementModal').classList.add('hidden'); }
-        function saveAnnouncement() {
-            const val = document.getElementById('announcementInput').value.trim();
-            if(!val) return alert('Teks tidak boleh kosong!');
-            announcementText = val;
-            localStorage.setItem('sync_announcement', announcementText);
-            document.getElementById('announcementText').innerText = announcementText;
-            addLog('Admin memperbarui teks informasi pembayaran.');
-            closeEditAnnouncementModal();
-        }
-
-        // Download CSV
-        function downloadDataCSV() {
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "No,Nama Siswa,Total Lunas\r\n";
-            students.forEach((s, idx) => {
-                let total = 0;
-                mondaysList.forEach(d => {
-                    const dStr = d.toISOString().split('T')[0];
-                    if(s.payments[dStr] === 'Lunas') total += getNominalByDate(d);
-                });
-                csvContent += `${idx+1},"${s}",${total}\r\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "rekap_kas_sync_tjkt3.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    </script>
-</body>
-</html>
+                        <td class="p-3 font-semibold t
