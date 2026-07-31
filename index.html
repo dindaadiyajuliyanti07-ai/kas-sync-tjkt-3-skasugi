@@ -1,28 +1,61 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Data Pembayaran SYNC TJKT 3 angkatan 2024</title>
     <!-- Google Fonts & Tailwind CSS untuk Tampilan Modern -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4">
+    </script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #CAFOF8; color: #03045E; }
-        .bg-primary { background-color: #03045E; }
-        .bg-secondary { background-color: #007786; }
-        .bg-accent { background-color: #00B4D8; }
-        .bg-lightblue { background-color: #90E0EF; }
-        .bg-soft { background-color: #CAFOF8; }
-        
-        .text-primary { color: #03045E; }
-        .text-secondary { color: #007786; }
-        .text-accent { color: #00B4D8; }
-        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #CAFOF8;
+            color: #03045E;
+        }
+        .bg-primary {
+            background-color: #03045E;
+        }
+        .bg-secondary {
+            background-color: #007786;
+        }
+        .bg-accent {
+            background-color: #00B4D8;
+        }
+        .bg-lightblue {
+            background-color: #90E0EF;
+        }
+        .bg-soft {
+            background-color: #CAFOF8;
+        }
+        .text-primary {
+            color: #03045E;
+        }
+        .text-secondary {
+            color: #007786;
+        }
+        .text-accent {
+            color: #00B4D8;
+        }
+
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #CAFOF8; }
-        ::-webkit-scrollbar-thumb { background: #00B4D8; border-radius: 4px; }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #CAFOF8;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00B4D8;
+            border-radius: 4px;
+        }
+
+        /* Transisi halus untuk modal */
+        .modal-transition {
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between pb-10">
@@ -82,6 +115,33 @@
                     </button>
                 </div>
             </div>
+
+            <!-- 🔥 BAGIAN KELOLA SISWA (ADMIN) -->
+            <div class="mt-2 border-t border-slate-100 pt-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-semibold text-primary text-sm flex items-center gap-2">
+                        👥 Kelola Siswa
+                        <span id="studentCountBadge" class="bg-slate-200 text-slate-700 text-[10px] px-2 py-0.5 rounded-full font-medium">0 siswa</span>
+                    </h4>
+                    <button onclick="openAddStudentModal()" class="bg-[#007786] hover:bg-[#03045E] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                        + Tambah
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-56 overflow-y-auto border border-slate-100 rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 text-slate-600 sticky top-0">
+                            <tr>
+                                <th class="p-2.5 w-12">No</th>
+                                <th class="p-2.5">Nama Siswa</th>
+                                <th class="p-2.5 text-center w-24">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentManagementBody" class="divide-y divide-slate-100">
+                            <!-- Generated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Tabel Pembayaran Kas -->
@@ -94,7 +154,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="overflow-x-auto">
                 <table id="kasTable" class="w-full text-left border-collapse text-sm">
                     <thead id="tableHead" class="bg-[#03045E] text-white uppercase text-xs tracking-wider">
@@ -148,7 +208,7 @@
                 <h3 class="font-bold text-primary text-lg">💳 Informasi Pembayaran</h3>
                 <button id="editAnnouncementBtn" onclick="openEditAnnouncementModal()" class="hidden text-xs bg-[#007786] text-white px-3 py-1.5 rounded-lg font-medium">Ubah Pengumuman</button>
             </div>
-            
+
             <div id="announcementText" class="text-sm font-medium text-slate-700 bg-[#CAFOF8]/40 p-4 rounded-xl border border-[#90E0EF]">
                 Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.
             </div>
@@ -156,7 +216,7 @@
             <div class="flex flex-col items-center justify-center space-y-3 pt-2">
                 <!-- Foto QRIS menggunakan qris.jpeg -->
                 <div class="p-3 bg-white border-2 border-dashed border-[#00B4D8] rounded-2xl shadow-sm inline-block">
-                    <img src="qris.jpeg" alt="QRIS Pembayaran" id="qrisImage" class="w-48 sm:w-56 h-auto rounded-lg object-contain mx-auto" onerror="this.onerror=null; this.src='https://via.placeholder.com/250?text=File+qris.jpeg+Belum+Ditemukan';">
+                    <img src="qris.jpeg" alt="QRIS Pembayaran" id="qrisImage" class="w-48 sm:w-56 h-auto rounded-lg object-contain mx-auto" onerror="this.onerror=null; this.src='https://via.placeholder.com/250?text=File+qris.jpeg+Belum+Ditemukan';" />
                 </div>
                 <p class="text-xs sm:text-sm font-bold text-primary tracking-wide">
                     Setelah membayar harap screenshot dan chat nomor 089529581033 untuk konfirmasi.
@@ -173,16 +233,16 @@
 
     <!-- MODAL LOGIN ADMIN -->
     <div id="authModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl modal-transition">
             <h3 class="font-bold text-primary text-lg">Login Admin Kas</h3>
             <div class="space-y-3">
                 <div>
                     <label class="text-xs font-semibold text-slate-600">Email Admin</label>
-                    <input type="email" id="loginEmail" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="email...">
+                    <input type="email" id="loginEmail" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="email..." />
                 </div>
                 <div>
                     <label class="text-xs font-semibold text-slate-600">Password</label>
-                    <input type="password" id="loginPass" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="password...">
+                    <input type="password" id="loginPass" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="password..." />
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
@@ -194,11 +254,11 @@
 
     <!-- MODAL TAMBAH SISWA -->
     <div id="addStudentModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl modal-transition">
             <h3 class="font-bold text-primary text-lg">Tambah Siswa Baru</h3>
             <div>
                 <label class="text-xs font-semibold text-slate-600">Nama Lengkap Siswa</label>
-                <input type="text" id="newStudentName" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="Nama siswa...">
+                <input type="text" id="newStudentName" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="Nama siswa..." />
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeAddStudentModal()" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-xl">Batal</button>
@@ -209,20 +269,20 @@
 
     <!-- MODAL TAMBAH PENGELUARAN -->
     <div id="addExpenseModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl modal-transition">
             <h3 class="font-bold text-primary text-lg">Catat Pengeluaran Baru</h3>
             <div class="space-y-3">
                 <div>
                     <label class="text-xs font-semibold text-slate-600">Tanggal</label>
-                    <input type="date" id="expenseDate" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]">
+                    <input type="date" id="expenseDate" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
                 </div>
                 <div>
                     <label class="text-xs font-semibold text-slate-600">Keperluan (Beli Apa)</label>
-                    <input type="text" id="expenseDesc" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="Contoh: Beli Spidol & Penghapus">
+                    <input type="text" id="expenseDesc" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="Contoh: Beli Spidol & Penghapus" />
                 </div>
                 <div>
                     <label class="text-xs font-semibold text-slate-600">Harga (Rp)</label>
-                    <input type="number" id="expenseAmount" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="15000">
+                    <input type="number" id="expenseAmount" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" placeholder="15000" />
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
@@ -234,7 +294,7 @@
 
     <!-- MODAL EDIT PENGUMUMAN -->
     <div id="editAnnouncementModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl modal-transition">
             <h3 class="font-bold text-primary text-lg">Ubah Teks Pengumuman & Info Pembayaran</h3>
             <div>
                 <textarea id="announcementInput" rows="4" class="w-full mt-1 p-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"></textarea>
@@ -246,10 +306,32 @@
         </div>
     </div>
 
+    <!-- 🔥 MODAL KONFIRMASI HAPUS SISWA (BARU) -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl modal-transition">
+            <h3 class="font-bold text-rose-600 text-lg flex items-center gap-2">
+                ⚠️ Konfirmasi Hapus
+            </h3>
+            <p class="text-sm text-slate-600" id="deleteConfirmMessage">
+                Yakin ingin menghapus siswa <strong id="deleteStudentNameDisplay"></strong> dari daftar?
+                <br /><span class="text-xs text-slate-400">Data pembayaran siswa ini akan hilang permanen.</span>
+            </p>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeDeleteConfirmModal()" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-xl">Batal</button>
+                <button onclick="confirmDeleteStudent()" class="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow">
+                    Ya, Hapus Siswa
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // ============================================================
+        // KONFIGURASI TANGGAL & SENIN OTOMATIS
+        // ============================================================
         const startDate = new Date('2024-07-27');
-        
+
         function generateMondays() {
             const mondays = [];
             let current = new Date(startDate);
@@ -263,23 +345,20 @@
             }
             return mondays;
         }
-
         const mondaysList = generateMondays();
 
         function getNominalByDate(dateObj) {
             const time = dateObj.getTime();
             const class11Start = new Date('2025-07-28').getTime();
             const class12Start = new Date('2026-09-14').getTime();
-
-            if (time >= class12Start) {
-                return 5000;
-            } else if (time >= class11Start) {
-                return 2000;
-            } else {
-                return 5000;
-            }
+            if (time >= class12Start) return 5000;
+            if (time >= class11Start) return 2000;
+            return 5000;
         }
 
+        // ============================================================
+        // STATE DATA
+        // ============================================================
         let isAdmin = localStorage.getItem('isAdminSYNC') === 'true';
         let isUnpaidViewActive = false;
 
@@ -297,32 +376,45 @@
             { time: '2024-07-27 10:00', text: 'Sistem Kas Kelas diinisialisasi.' }
         ];
 
-        let announcementText = localStorage.getItem('sync_announcement') || "Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.";
+        let announcementText = localStorage.getItem('sync_announcement') ||
+            "Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.";
 
+        // Variabel untuk delete confirmation
+        let deleteTargetId = null;
+
+        // ============================================================
+        // INISIALISASI
+        // ============================================================
         window.onload = function() {
             updateAuthUI();
             renderTable();
             renderExpenses();
             renderLogs();
+            renderStudentManagement();
             document.getElementById('announcementText').innerText = announcementText;
         };
 
+        // ============================================================
+        // RENDER TABEL KAS
+        // ============================================================
         function renderTable() {
             const thead = document.getElementById('tableHead');
             const tbody = document.getElementById('tableBody');
             const tableTitle = document.getElementById('tableTitle');
 
-            let headerHTML = `<tr>
+            let headerHTML =
+                `<tr>
                 <th class="p-3 text-center w-12">No</th>
                 <th class="p-3">Nama Siswa</th>`;
-            
-            mondaysList.forEach((date) => {
+
+            mondaysList.forEach((date, idx) => {
                 const dateStr = date.toISOString().split('T')[0];
                 const nominal = getNominalByDate(date);
-                headerHTML += `<th class="p-3 text-center whitespace-nowrap">Senin<br><span class="text-[10px] font-normal opacity-80">${dateStr}</span><br><span class="text-[9px] bg-white/20 px-1 rounded">Rp ${nominal}</span></th>`;
+                headerHTML +=
+                    `<th class="p-3 text-center whitespace-nowrap">Senin<br><span class="text-[10px] font-normal opacity-80">${dateStr}</span><br><span class="text-[9px] bg-white/20 px-1 rounded">Rp ${nominal}</span></th>`;
             });
             headerHTML += `<th class="p-3 text-center">Total Bayar</th>`;
-            if(isAdmin) headerHTML += `<th class="p-3 text-center">Aksi</th>`;
+            if (isAdmin) headerHTML += `<th class="p-3 text-center">Aksi</th>`;
             headerHTML += `</tr>`;
             thead.innerHTML = headerHTML;
 
@@ -330,7 +422,6 @@
             if (isUnpaidViewActive && isAdmin) {
                 tableTitle.innerText = "Daftar Siswa Belum Bayar (Sampai Hari Ini)";
                 const todayStr = new Date().toISOString().split('T')[0];
-                
                 displayStudents = students.filter(student => {
                     let hasUnpaid = false;
                     mondaysList.forEach(date => {
@@ -350,10 +441,420 @@
 
             let bodyHTML = '';
             if (displayStudents.length === 0) {
-                bodyHTML = `<tr><td colspan="${mondaysList.length + 3}" class="p-6 text-center text-slate-400 italic">Tidak ada data siswa untuk ditampilkan.</td></tr>`;
+                bodyHTML =
+                    `<tr><td colspan="${mondaysList.length + 3}" class="p-6 text-center text-slate-400 italic">Tidak ada data siswa untuk ditampilkan.</td></tr>`;
             } else {
                 displayStudents.forEach((student, index) => {
                     let totalPaid = 0;
-                    let rowHTML = `<tr class="hover:bg-slate-50/80 transition">
+                    let rowHTML =
+                        `<tr class="hover:bg-slate-50/80 transition">
                         <td class="p-3 text-center font-medium text-slate-500">${index + 1}</td>
-                        <td class="p-3 font-semibold t
+                        <td class="p-3 font-semibold text-primary whitespace-nowrap">${student.name}</td>`;
+
+                    mondaysList.forEach(date => {
+                        const dateStr = date.toISOString().split('T')[0];
+                        const nominal = getNominalByDate(date);
+                        const status = student.payments[dateStr] || 'Belum Lunas';
+
+                        if (status === 'Lunas') totalPaid += nominal;
+
+                        let badgeColor = 'bg-rose-100 text-rose-700 border-rose-200';
+                        if (status === 'Lunas') badgeColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                        if (status === 'Libur') badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
+
+                        if (isAdmin) {
+                            rowHTML += `<td class="p-2 text-center">
+                                <button onclick="togglePaymentStatus(${student.id}, '${dateStr}')" class="px-2.5 py-1 rounded-lg text-xs font-bold border ${badgeColor} transition shadow-2xs hover:opacity-80">
+                                    ${status}
+                                </button>
+                            </td>`;
+                        } else {
+                            rowHTML += `<td class="p-2 text-center">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${badgeColor} inline-block">
+                                    ${status}
+                                </span>
+                            </td>`;
+                        }
+                    });
+
+                    rowHTML += `<td class="p-3 text-center font-bold text-secondary">Rp ${totalPaid.toLocaleString('id-ID')}</td>`;
+
+                    if (isAdmin) {
+                        rowHTML += `<td class="p-3 text-center">
+                            <button onclick="openDeleteConfirm(${student.id}, '${student.name.replace(/'/g, "\\'")}')" class="text-rose-500 hover:text-rose-700 p-1 text-xs font-medium flex items-center gap-1 mx-auto">
+                                🗑️ Hapus
+                            </button>
+                        </td>`;
+                    }
+                    rowHTML += `</tr>`;
+                    bodyHTML += rowHTML;
+                });
+            }
+            tbody.innerHTML = bodyHTML;
+
+            calculateFinancials();
+            renderStudentManagement();
+        }
+
+        // ============================================================
+        // KALKULASI KEUANGAN
+        // ============================================================
+        function calculateFinancials() {
+            let totalPemasukan = 0;
+            students.forEach(student => {
+                mondaysList.forEach(date => {
+                    const dateStr = date.toISOString().split('T')[0];
+                    const nominal = getNominalByDate(date);
+                    if (student.payments[dateStr] === 'Lunas') {
+                        totalPemasukan += nominal;
+                    }
+                });
+            });
+
+            let totalPengeluaran = 0;
+            expenses.forEach(exp => {
+                totalPengeluaran += Number(exp.amount);
+            });
+
+            const saldo = totalPemasukan - totalPengeluaran;
+
+            document.getElementById('totalPemasukan').innerText = `Rp ${totalPemasukan.toLocaleString('id-ID')}`;
+            document.getElementById('totalPengeluaran').innerText = `Rp ${totalPengeluaran.toLocaleString('id-ID')}`;
+            document.getElementById('saldoKas').innerText = `Rp ${saldo.toLocaleString('id-ID')}`;
+        }
+
+        // ============================================================
+        // FUNGSI TOGGLE STATUS PEMBAYARAN
+        // ============================================================
+        function togglePaymentStatus(studentId, dateStr) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const current = student.payments[dateStr] || 'Belum Lunas';
+            let next = 'Lunas';
+            if (current === 'Belum Lunas') next = 'Lunas';
+            else if (current === 'Lunas') next = 'Libur';
+            else next = 'Belum Lunas';
+
+            student.payments[dateStr] = next;
+            saveData();
+            addLog(`Admin mengubah status kas ${student.name} pada ${dateStr} menjadi ${next}.`);
+            renderTable();
+        }
+
+        // ============================================================
+        // RENDER PENGELUARAN
+        // ============================================================
+        function renderExpenses() {
+            const tbody = document.getElementById('expenseTableBody');
+            let html = '';
+            if (expenses.length === 0) {
+                html =
+                `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Belum ada catatan pengeluaran.</td></tr>`;
+            } else {
+                expenses.forEach(exp => {
+                    html += `<tr class="hover:bg-slate-50">
+                        <td class="p-2.5 whitespace-nowrap">${exp.date}</td>
+                        <td class="p-2.5 font-medium text-slate-700">${exp.desc}</td>
+                        <td class="p-2.5 font-bold text-rose-600">Rp ${Number(exp.amount).toLocaleString('id-ID')}</td>`;
+                    if (isAdmin) {
+                        html +=
+                            `<td class="p-2.5 text-center"><button onclick="deleteExpense(${exp.id})" class="text-rose-500 hover:underline">Hapus</button></td>`;
+                    } else {
+                        html += `<td class="p-2.5 text-center action-col hidden">-</td>`;
+                    }
+                    html += `</tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        // ============================================================
+        // RENDER STUDENT MANAGEMENT (KELOLA SISWA)
+        // ============================================================
+        function renderStudentManagement() {
+            const tbody = document.getElementById('studentManagementBody');
+            const badge = document.getElementById('studentCountBadge');
+            if (!tbody) return;
+
+            let html = '';
+            if (students.length === 0) {
+                html =
+                    `<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">Belum ada siswa terdaftar.</td></tr>`;
+            } else {
+                students.forEach((s, idx) => {
+                    html += `<tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-2.5 text-center text-slate-500">${idx + 1}</td>
+                        <td class="p-2.5 font-medium text-primary">${s.name}</td>
+                        <td class="p-2.5 text-center">
+                            <button onclick="openDeleteConfirm(${s.id}, '${s.name.replace(/'/g, "\\'")}')" class="text-rose-500 hover:text-rose-700 text-xs font-medium flex items-center gap-1 mx-auto transition hover:scale-105">
+                                🗑️ Hapus
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+            badge.innerText = `${students.length} siswa`;
+        }
+
+        // ============================================================
+        // RENDER LOG
+        // ============================================================
+        function renderLogs() {
+            const container = document.getElementById('logContainer');
+            let html = '';
+            logs.slice().reverse().forEach(log => {
+                html += `<div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs space-y-1">
+                    <span class="text-[10px] text-slate-400 block">${log.time}</span>
+                    <p class="text-slate-700 font-medium">${log.text}</p>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function addLog(text) {
+            const now = new Date();
+            const timeStr = now.toISOString().slice(0, 16).replace('T', ' ');
+            logs.push({ time: timeStr, text: text });
+            localStorage.setItem('sync_logs', JSON.stringify(logs));
+            renderLogs();
+        }
+
+        function saveData() {
+            localStorage.setItem('sync_students', JSON.stringify(students));
+            localStorage.setItem('sync_expenses', JSON.stringify(expenses));
+        }
+
+        // ============================================================
+        // AUTENTIKASI ADMIN
+        // ============================================================
+        function toggleAuthModal() {
+            if (isAdmin) {
+                if (confirm("Yakin ingin keluar dari akun Admin?")) {
+                    isAdmin = false;
+                    localStorage.setItem('isAdminSYNC', 'false');
+                    isUnpaidViewActive = false;
+                    updateAuthUI();
+                    renderTable();
+                    renderExpenses();
+                    renderStudentManagement();
+                }
+            } else {
+                document.getElementById('authModal').classList.toggle('hidden');
+            }
+        }
+
+        function processLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+
+            if (email === 'adminsynctkj3@sunangiri.id' && pass === 'synctkj3_dinda') {
+                isAdmin = true;
+                localStorage.setItem('isAdminSYNC', 'true');
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPass').value = '';
+                updateAuthUI();
+                renderTable();
+                renderExpenses();
+                renderStudentManagement();
+                addLog('Admin berhasil login ke sistem.');
+            } else {
+                alert('Email atau Password Admin salah!');
+            }
+        }
+
+        function updateAuthUI() {
+            const badge = document.getElementById('userStatusBadge');
+            const authBtn = document.getElementById('authBtn');
+            const adminPanel = document.getElementById('adminPanel');
+            const editAnnBtn = document.getElementById('editAnnouncementBtn');
+            const actionCols = document.querySelectorAll('.action-col');
+
+            if (isAdmin) {
+                badge.innerText = "Status: Admin (Full Access)";
+                badge.className = "text-xs bg-emerald-500 text-white px-3 py-1 rounded-full font-medium shadow-2xs";
+                authBtn.innerText = "Logout Admin";
+                authBtn.className = "bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow";
+                adminPanel.classList.remove('hidden');
+                editAnnBtn.classList.remove('hidden');
+                actionCols.forEach(el => el.classList.remove('hidden'));
+            } else {
+                badge.innerText = "Status: Tamu (Read-Only)";
+                badge.className = "text-xs bg-white/20 px-3 py-1 rounded-full font-medium";
+                authBtn.innerText = "Login Admin";
+                authBtn.className = "bg-[#00B4D8] hover:bg-[#007786] text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow";
+                adminPanel.classList.add('hidden');
+                editAnnBtn.classList.add('hidden');
+                actionCols.forEach(el => el.classList.add('hidden'));
+            }
+        }
+
+        // ============================================================
+        // FITUR FILTER BELUM BAYAR
+        // ============================================================
+        function toggleUnpaidView() {
+            isUnpaidViewActive = true;
+            document.getElementById('unpaidToggleBtn').classList.add('hidden');
+            document.getElementById('fullDataBtn').classList.remove('hidden');
+            renderTable();
+        }
+
+        function resetToFullData() {
+            isUnpaidViewActive = false;
+            document.getElementById('unpaidToggleBtn').classList.remove('hidden');
+            document.getElementById('fullDataBtn').classList.add('hidden');
+            renderTable();
+        }
+
+        // ============================================================
+        // MODAL TAMBAH SISWA
+        // ============================================================
+        function openAddStudentModal() {
+            document.getElementById('addStudentModal').classList.remove('hidden');
+        }
+
+        function closeAddStudentModal() {
+            document.getElementById('addStudentModal').classList.add('hidden');
+        }
+
+        function saveNewStudent() {
+            const name = document.getElementById('newStudentName').value.trim();
+            if (!name) return alert('Nama siswa tidak boleh kosong!');
+            const newId = students.length > 0 ? students[students.length - 1].id + 1 : 1;
+            students.push({ id: newId, name: name, payments: {} });
+            saveData();
+            addLog(`Admin menambahkan siswa baru: ${name}`);
+            document.getElementById('newStudentName').value = '';
+            closeAddStudentModal();
+            renderTable();
+        }
+
+        // ============================================================
+        // 🔥 HAPUS SISWA - MODAL KONFIRMASI (BARU)
+        // ============================================================
+        function openDeleteConfirm(studentId, studentName) {
+            if (!isAdmin) return;
+            deleteTargetId = studentId;
+            document.getElementById('deleteStudentNameDisplay').innerText = studentName;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+        }
+
+        function closeDeleteConfirmModal() {
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+            deleteTargetId = null;
+        }
+
+        function confirmDeleteStudent() {
+            if (deleteTargetId === null) return;
+            const student = students.find(s => s.id === deleteTargetId);
+            if (student) {
+                students = students.filter(s => s.id !== deleteTargetId);
+                saveData();
+                addLog(`Admin menghapus siswa: ${student.name} (ID: ${deleteTargetId})`);
+                closeDeleteConfirmModal();
+                renderTable();
+            } else {
+                closeDeleteConfirmModal();
+            }
+        }
+
+        // ============================================================
+        // MODAL PENGELUARAN
+        // ============================================================
+        function openAddExpenseModal() {
+            document.getElementById('addExpenseModal').classList.remove('hidden');
+        }
+
+        function closeAddExpenseModal() {
+            document.getElementById('addExpenseModal').classList.add('hidden');
+        }
+
+        function saveNewExpense() {
+            const date = document.getElementById('expenseDate').value;
+            const desc = document.getElementById('expenseDesc').value.trim();
+            const amount = document.getElementById('expenseAmount').value;
+
+            if (!date || !desc || !amount) return alert('Semua field pengeluaran harus diisi!');
+            const newId = expenses.length > 0 ? expenses[expenses.length - 1].id + 1 : 1;
+            expenses.push({ id: newId, date, desc, amount: Number(amount) });
+            saveData();
+            addLog(`Admin mencatat pengeluaran: "${desc}" sebesar Rp ${Number(amount).toLocaleString('id-ID')}`);
+
+            document.getElementById('expenseDate').value = '';
+            document.getElementById('expenseDesc').value = '';
+            document.getElementById('expenseAmount').value = '';
+            closeAddExpenseModal();
+            renderExpenses();
+            calculateFinancials();
+        }
+
+        function deleteExpense(id) {
+            if (confirm("Hapus catatan pengeluaran ini?")) {
+                expenses = expenses.filter(e => e.id !== id);
+                saveData();
+                addLog(`Admin menghapus data pengeluaran ID: ${id}`);
+                renderExpenses();
+                calculateFinancials();
+            }
+        }
+
+        // ============================================================
+        // MODAL PENGUMUMAN
+        // ============================================================
+        function openEditAnnouncementModal() {
+            document.getElementById('announcementInput').value = announcementText;
+            document.getElementById('editAnnouncementModal').classList.remove('hidden');
+        }
+
+        function closeEditAnnouncementModal() {
+            document.getElementById('editAnnouncementModal').classList.add('hidden');
+        }
+
+        function saveAnnouncement() {
+            const val = document.getElementById('announcementInput').value.trim();
+            if (!val) return alert('Teks tidak boleh kosong!');
+            announcementText = val;
+            localStorage.setItem('sync_announcement', announcementText);
+            document.getElementById('announcementText').innerText = announcementText;
+            addLog('Admin memperbarui teks informasi pembayaran.');
+            closeEditAnnouncementModal();
+        }
+
+        // ============================================================
+        // DOWNLOAD CSV
+        // ============================================================
+        function downloadDataCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "No,Nama Siswa,Total Lunas\r\n";
+            students.forEach((s, idx) => {
+                let total = 0;
+                mondaysList.forEach(d => {
+                    const dStr = d.toISOString().split('T')[0];
+                    if (s.payments[dStr] === 'Lunas') total += getNominalByDate(d);
+                });
+                csvContent += `${idx+1},"${s.name}",${total}\r\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "rekap_kas_sync_tjkt3.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ============================================================
+        // TUTUP MODAL SAAT KLIK DI LUAR
+        // ============================================================
+        document.querySelectorAll('.fixed.inset-0').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
