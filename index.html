@@ -8,12 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #CAFOF8; color: #03045E; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #CAF0F8; color: #03045E; }
         .bg-primary { background-color: #03045E; }
         .bg-secondary { background-color: #007786; }
         .bg-accent { background-color: #00B4D8; }
         .bg-lightblue { background-color: #90E0EF; }
-        .bg-soft { background-color: #CAFOF8; }
+        .bg-soft { background-color: #CAF0F8; }
         
         .text-primary { color: #03045E; }
         .text-secondary { color: #007786; }
@@ -21,7 +21,7 @@
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #CAFOF8; }
+        ::-webkit-scrollbar-track { background: #CAF0F8; }
         ::-webkit-scrollbar-thumb { background: #00B4D8; border-radius: 4px; }
     </style>
 </head>
@@ -47,7 +47,7 @@
 
         <!-- Loading Indicator -->
         <div id="loadingIndicator" class="bg-amber-100 border border-amber-300 text-amber-800 px-4 py-3 rounded-xl text-xs font-semibold text-center hidden">
-            Sedang menyinkronkan data dengan Google Sheets...
+            Sedang menyinkronkan data dengan database JSONBin...
         </div>
 
         <!-- Ringkasan / Statistik Keuangan -->
@@ -154,7 +154,7 @@
                 <button id="editAnnouncementBtn" onclick="openEditAnnouncementModal()" class="hidden text-xs bg-[#007786] text-white px-3 py-1.5 rounded-lg font-medium">Ubah Pengumuman</button>
             </div>
             
-            <div id="announcementText" class="text-sm font-medium text-slate-700 bg-[#CAFOF8]/40 p-4 rounded-xl border border-[#90E0EF]">
+            <div id="announcementText" class="text-sm font-medium text-slate-700 bg-[#CAF0F8]/40 p-4 rounded-xl border border-[#90E0EF]">
                 Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.
             </div>
 
@@ -250,11 +250,8 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC DENGAN GOOGLE SHEETS API -->
+    <!-- JAVASCRIPT LOGIC DENGAN JSONBIN.IO -->
     <script>
-        // ==========================================================
-        // MASUKKAN URL WEB APP GOOGLE SHEETS ANDA DI BAWAH INI (DALAM TANDA KUTIP):
-        // ==========================================================
         const JSONBIN_BIN_ID = "6a6c5fdaf5f4af5e29d93033";
         const JSONBIN_API_KEY = "$2a$10$iAHx9cq9Zye.uIakQo.wuuqxCL5GeLDnAuKN87xJf9uFsj8o/tHhm";
 
@@ -289,18 +286,18 @@
         let isAdmin = localStorage.getItem('isAdminSYNC') === 'true';
         let isUnpaidViewActive = false;
 
-        let students = [];
-        let expenses = [];
+        let dbData = {
+            pengumuman: "Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.",
+            siswa: [],
+            pengeluaran: []
+        };
         let logs = JSON.parse(localStorage.getItem('sync_logs')) || [
             { time: '2024-07-27 10:00', text: 'Sistem Kas Kelas diinisialisasi.' }
         ];
-        let announcementText = localStorage.getItem('sync_announcement') || "Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.";
 
-        // Load Data dari Google Sheets saat Halaman Dibuka
         window.onload = function() {
             updateAuthUI();
-            fetchDataFromSheets();
-            document.getElementById('announcementText').innerText = announcementText;
+            fetchDataFromJSONBin();
             renderLogs();
         };
 
@@ -310,103 +307,56 @@
             else loader.classList.add('hidden');
         }
 
-        // Ambil Data dari Google Sheets
-        function fetchDataFromSheets() {
-            if (SHEET_API_URL === "GANTI_DENGAN_URL_WEB_APP_ANDA_DISINI") {
-                // Fallback data default jika URL belum diisi
-                students = [
-                    { id: 1, name: 'Akmal', payments: {} },
-                    { id: 2, name: 'Andra', payments: {} },
-                    { id: 3, name: 'Bagus', payments: {} }
-                ];
-                expenses = [{ id: 1, date: '2024-08-02', desc: 'Pembelian Buku Kas Umum', amount: 10000 }];
+        // Ambil Data dari JSONBin.io
+        function fetchDataFromJSONBin() {
+            showLoading(true);
+            fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                headers: { "X-Master-Key": JSONBIN_API_KEY }
+            })
+            .then(res => res.json())
+            .then(res => {
+                showLoading(false);
+                if (res && res.record) {
+                    dbData = res.record;
+                    if(!dbData.siswa) dbData.siswa = [];
+                    if(!dbData.pengeluaran) dbData.pengeluaran = [];
+                    if(!dbData.pengumuman) dbData.pengumuman = "Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.";
+                }
+                document.getElementById('announcementText').innerText = dbData.pengumuman;
                 renderTable();
                 renderExpenses();
-                return;
-            }
-
-            showLoading(true);
-            fetch(SHEET_API_URL)
-                .then(res => res.json())
-                .then(data => {
-                    showLoading(false);
-                    // Parse Data Siswa dari Sheet
-                    if (data.siswa && data.siswa.length > 1) {
-                        students = [];
-                        for (let i = 1; i < data.siswa.length; i++) {
-                            let row = data.siswa[i];
-                            if(row[1]) {
-                                let payments = {};
-                                try { payments = row[2] ? JSON.parse(row[2]) : {}; } catch(e) {}
-                                students.push({ id: Number(row[0]), name: row[1], payments: payments });
-                            }
-                        }
-                    } else {
-                        students = [
-                            { id: 1, name: 'Akmal', payments: {} },
-                            { id: 2, name: 'Andra', payments: {} }
-                        ];
-                    }
-
-                    // Parse Data Pengeluaran dari Sheet
-                    if (data.pengeluaran && data.pengeluaran.length > 1) {
-                        expenses = [];
-                        for (let i = 1; i < data.pengeluaran.length; i++) {
-                            let row = data.pengeluaran[i];
-                            if(row[1]) {
-                                expenses.push({ id: Number(row[0]), date: row[1], desc: row[2], amount: Number(row[3]) });
-                            }
-                        }
-                    } else {
-                        expenses = [];
-                    }
-
-                    renderTable();
-                    renderExpenses();
-                })
-                .catch(err => {
-                    showLoading(false);
-                    console.error("Gagal memuat data:", err);
-                    alert("Gagal terhubung ke Google Sheets. Periksa kembali URL Web App Anda.");
-                });
+            })
+            .catch(err => {
+                showLoading(false);
+                console.error("Gagal memuat data dari JSONBin:", err);
+                alert("Gagal terhubung ke database JSONBin. Periksa koneksi internet Anda.");
+                renderTable();
+                renderExpenses();
+            });
         }
 
-        // Simpan Data ke Google Sheets (Kirim POST Request)
-        function saveDataToSheets() {
-            if (SHEET_API_URL === "GANTI_DENGAN_URL_WEB_APP_ANDA_DISINI") return;
-
+        // Simpan Data ke JSONBin.io
+        function saveDataToJSONBin() {
             showLoading(true);
-            
-            // Format Data Siswa untuk Sheet
-            let siswaRows = [["ID", "Nama", "Payments_JSON"]];
-            students.forEach(s => {
-                siswaRows.push([s.id, s.name, JSON.stringify(s.payments)]);
+            fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Master-Key": JSONBIN_API_KEY
+                },
+                body: JSON.stringify(dbData)
+            })
+            .then(res => res.json())
+            .then(() => {
+                showLoading(false);
+                renderTable();
+                renderExpenses();
+            })
+            .catch(err => {
+                showLoading(false);
+                console.error("Gagal menyimpan ke JSONBin:", err);
+                alert("Gagal menyimpan perubahan ke database!");
             });
-
-            // Format Data Pengeluaran untuk Sheet
-            let pengeluaranRows = [["ID", "Tanggal", "Keperluan", "Harga"]];
-            expenses.forEach(e => {
-                pengeluaranRows.push([e.id, e.date, e.desc, e.amount]);
-            });
-
-            // Kirim Siswa
-            fetch(SHEET_API_URL, {
-                method: "POST",
-                body: JSON.stringify({ type: "siswa", data: siswaRows })
-            }).then(() => {
-                // Kirim Pengeluaran
-                return fetch(SHEET_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ type: "pengeluaran", data: pengeluaranRows })
-                });
-            }).then(res => res.json())
-              .then(res => {
-                  showLoading(false);
-              })
-              .catch(err => {
-                  showLoading(false);
-                  console.error("Gagal menyimpan:", err);
-              });
         }
 
         // Render Tabel Kas
@@ -419,7 +369,7 @@
                 <th class="p-3 text-center w-12">No</th>
                 <th class="p-3">Nama Siswa</th>`;
             
-            mondaysList.forEach((date, idx) => {
+            mondaysList.forEach((date) => {
                 const dateStr = date.toISOString().split('T')[0];
                 const nominal = getNominalByDate(date);
                 headerHTML += `<th class="p-3 text-center whitespace-nowrap">Senin<br><span class="text-[10px] font-normal opacity-80">${dateStr}</span><br><span class="text-[9px] bg-white/20 px-1 rounded">Rp ${nominal}</span></th>`;
@@ -429,17 +379,17 @@
             headerHTML += `</tr>`;
             thead.innerHTML = headerHTML;
 
-            let displayStudents = [...students];
+            let displayStudents = [...dbData.siswa];
             if (isUnpaidViewActive && isAdmin) {
                 tableTitle.innerText = "Daftar Siswa Belum Bayar (Sampai Hari Ini)";
                 const todayStr = new Date().toISOString().split('T')[0];
                 
-                displayStudents = students.filter(student => {
+                displayStudents = dbData.siswa.filter(student => {
                     let hasUnpaid = false;
                     mondaysList.forEach(date => {
                         const dateStr = date.toISOString().split('T')[0];
                         if (dateStr <= todayStr) {
-                            const status = student.payments[dateStr] || 'Belum Lunas';
+                            const status = (student.payments && student.payments[dateStr]) || 'Belum Lunas';
                             if (status !== 'Lunas' && status !== 'Libur') hasUnpaid = true;
                         }
                     });
@@ -451,7 +401,7 @@
 
             let bodyHTML = '';
             if (displayStudents.length === 0) {
-                bodyHTML = `<tr><td colspan="${mondaysList.length + 3}" class="p-6 text-center text-slate-400 italic">Tidak ada data siswa untuk ditampilkan.</td></tr>`;
+                bodyHTML = `<tr><td colspan="${mondaysList.length + 3}" class="p-6 text-center text-slate-400 italic">Belum ada data siswa. Admin dapat menambahkan nama siswa.</td></tr>`;
             } else {
                 displayStudents.forEach((student, index) => {
                     let totalPaid = 0;
@@ -462,7 +412,7 @@
                     mondaysList.forEach(date => {
                         const dateStr = date.toISOString().split('T')[0];
                         const nominal = getNominalByDate(date);
-                        const status = student.payments[dateStr] || 'Belum Lunas';
+                        const status = (student.payments && student.payments[dateStr]) || 'Belum Lunas';
 
                         if (status === 'Lunas') totalPaid += nominal;
 
@@ -502,16 +452,16 @@
 
         function calculateFinancials() {
             let totalPemasukan = 0;
-            students.forEach(student => {
+            dbData.siswa.forEach(student => {
                 mondaysList.forEach(date => {
                     const dateStr = date.toISOString().split('T')[0];
                     const nominal = getNominalByDate(date);
-                    if (student.payments[dateStr] === 'Lunas') totalPemasukan += nominal;
+                    if (student.payments && student.payments[dateStr] === 'Lunas') totalPemasukan += nominal;
                 });
             });
 
             let totalPengeluaran = 0;
-            expenses.forEach(exp => { totalPengeluaran += Number(exp.amount); });
+            dbData.pengeluaran.forEach(exp => { totalPengeluaran += Number(exp.amount); });
 
             const saldo = totalPemasukan - totalPengeluaran;
 
@@ -521,9 +471,10 @@
         }
 
         function togglePaymentStatus(studentId, dateStr) {
-            const student = students.find(s => s.id === studentId);
+            const student = dbData.siswa.find(s => s.id === studentId);
             if (!student) return;
 
+            if(!student.payments) student.payments = {};
             const current = student.payments[dateStr] || 'Belum Lunas';
             let next = 'Lunas';
             if (current === 'Belum Lunas') next = 'Lunas';
@@ -531,18 +482,17 @@
             else next = 'Belum Lunas';
 
             student.payments[dateStr] = next;
-            saveDataToSheets();
+            saveDataToJSONBin();
             addLog(`Admin mengubah status kas ${student.name} pada ${dateStr} menjadi ${next}.`);
-            renderTable();
         }
 
         function renderExpenses() {
             const tbody = document.getElementById('expenseTableBody');
             let html = '';
-            if (expenses.length === 0) {
+            if (!dbData.pengeluaran || dbData.pengeluaran.length === 0) {
                 html = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Belum ada catatan pengeluaran.</td></tr>`;
             } else {
-                expenses.forEach(exp => {
+                dbData.pengeluaran.forEach(exp => {
                     html += `<tr class="hover:bg-slate-50">
                         <td class="p-2.5 whitespace-nowrap">${exp.date}</td>
                         <td class="p-2.5 font-medium text-slate-700">${exp.desc}</td>
@@ -597,7 +547,7 @@
             const email = document.getElementById('loginEmail').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
 
-            if (email === 'adminsync@sunangiri.id' && pass === 'synctkj3_dinda') {
+            if (email === 'adminsynctkj3@sunangiri.id' && pass === 'synctkj3_dinda') {
                 isAdmin = true;
                 localStorage.setItem('isAdminSYNC', 'true');
                 document.getElementById('authModal').classList.add('hidden');
@@ -654,67 +604,66 @@
 
         function openAddStudentModal() { document.getElementById('addStudentModal').classList.remove('hidden'); }
         function closeAddStudentModal() { document.getElementById('addStudentModal').classList.add('hidden'); }
+        
         function saveNewStudent() {
             const name = document.getElementById('newStudentName').value.trim();
             if(!name) return alert('Nama siswa tidak boleh kosong!');
-            const newId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
-            students.push({ id: newId, name: name, payments: {} });
-            saveDataToSheets();
+            const newId = dbData.siswa.length > 0 ? Math.max(...dbData.siswa.map(s => s.id)) + 1 : 1;
+            dbData.siswa.push({ id: newId, name: name, payments: {} });
+            saveDataToJSONBin();
             addLog(`Admin menambahkan siswa baru: ${name}`);
             document.getElementById('newStudentName').value = '';
             closeAddStudentModal();
-            renderTable();
         }
+
         function deleteStudent(id) {
             if(confirm("Hapus siswa ini dari daftar kas?")) {
-                students = students.filter(s => s.id !== id);
-                saveDataToSheets();
+                dbData.siswa = dbData.siswa.filter(s => s.id !== id);
+                saveDataToJSONBin();
                 addLog(`Admin menghapus data siswa ID: ${id}`);
-                renderTable();
             }
         }
 
         function openAddExpenseModal() { document.getElementById('addExpenseModal').classList.remove('hidden'); }
         function closeAddExpenseModal() { document.getElementById('addExpenseModal').classList.add('hidden'); }
+        
         function saveNewExpense() {
             const date = document.getElementById('expenseDate').value;
             const desc = document.getElementById('expenseDesc').value.trim();
             const amount = document.getElementById('expenseAmount').value;
 
             if(!date || !desc || !amount) return alert('Semua field pengeluaran harus diisi!');
-            const newId = expenses.length > 0 ? Math.max(...expenses.map(e => e.id)) + 1 : 1;
-            expenses.push({ id: newId, date, desc, amount: Number(amount) });
-            saveDataToSheets();
+            const newId = dbData.pengeluaran.length > 0 ? Math.max(...dbData.pengeluaran.map(e => e.id)) + 1 : 1;
+            dbData.pengeluaran.push({ id: newId, date, desc, amount: Number(amount) });
+            saveDataToJSONBin();
             addLog(`Admin mencatat pengeluaran: "${desc}" sebesar Rp ${Number(amount).toLocaleString('id-ID')}`);
             
             document.getElementById('expenseDate').value = '';
             document.getElementById('expenseDesc').value = '';
             document.getElementById('expenseAmount').value = '';
             closeAddExpenseModal();
-            renderExpenses();
-            calculateFinancials();
         }
+
         function deleteExpense(id) {
             if(confirm("Hapus catatan pengeluaran ini?")) {
-                expenses = expenses.filter(e => e.id !== id);
-                saveDataToSheets();
+                dbData.pengeluaran = dbData.pengeluaran.filter(e => e.id !== id);
+                saveDataToJSONBin();
                 addLog(`Admin menghapus data pengeluaran ID: ${id}`);
-                renderExpenses();
-                calculateFinancials();
             }
         }
 
         function openEditAnnouncementModal() {
-            document.getElementById('announcementInput').value = announcementText;
+            document.getElementById('announcementInput').value = dbData.pengumuman;
             document.getElementById('editAnnouncementModal').classList.remove('hidden');
         }
         function closeEditAnnouncementModal() { document.getElementById('editAnnouncementModal').classList.add('hidden'); }
+        
         function saveAnnouncement() {
             const val = document.getElementById('announcementInput').value.trim();
             if(!val) return alert('Teks tidak boleh kosong!');
-            announcementText = val;
-            localStorage.setItem('sync_announcement', announcementText);
-            document.getElementById('announcementText').innerText = announcementText;
+            dbData.pengumuman = val;
+            document.getElementById('announcementText').innerText = dbData.pengumuman;
+            saveDataToJSONBin();
             addLog('Admin memperbarui teks informasi pembayaran.');
             closeEditAnnouncementModal();
         }
@@ -722,11 +671,11 @@
         function downloadDataCSV() {
             let csvContent = "data:text/csv;charset=utf-8,";
             csvContent += "No,Nama Siswa,Total Lunas\r\n";
-            students.forEach((s, idx) => {
+            dbData.siswa.forEach((s, idx) => {
                 let total = 0;
                 mondaysList.forEach(d => {
                     const dStr = d.toISOString().split('T')[0];
-                    if(s.payments[dStr] === 'Lunas') total += getNominalByDate(d);
+                    if(s.payments && s.payments[dStr] === 'Lunas') total += getNominalByDate(d);
                 });
                 csvContent += `${idx+1},"${s.name}",${total}\r\n`;
             });
