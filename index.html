@@ -71,21 +71,20 @@
                 <h3 class="font-bold text-primary text-lg flex items-center gap-2">🛠️ Panel Kontrol Admin</h3>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="openAddStudentModal()" class="bg-[#007786] hover:bg-[#03045E] text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition">+ Tambah Siswa</button>
-                    <button onclick="openAddDateModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition">+ Tambah Hari/Tanggal</button>
+                    <button onclick="openAddDateModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition">+ Tambah Tanggal & Nominal</button>
                     <button onclick="openAddExpenseModal()" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition">+ Catat Pengeluaran</button>
                     <button onclick="openAddIncomeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition">+ Pemasukan Lain</button>
                     <button onclick="openAddNonCashModal()" class="bg-violet-600 hover:bg-violet-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition">+ Catatan Non Kas</button>
-                    <button onclick="toggleFullDataView()" id="viewToggleBtn" class="bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition">Lihat Seluruh Data Kas</button>
                 </div>
             </div>
         </div>
 
-        <!-- Tabel Pembayaran Kas -->
-        <div class="bg-white rounded-2xl shadow-sm border border-[#90E0EF]/50 overflow-hidden">
-            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <!-- Bagian Tabel Kas (Tamu hanya melihat yang belum lunas, Admin melihat 3 Kelas Terpisah) -->
+        <div class="space-y-6">
+            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-[#90E0EF]/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h3 id="tableTitle" class="font-bold text-primary text-lg">Daftar Siswa Belum Lunas (Tunggakan Kas)</h3>
-                    <p id="tableSubtitle" class="text-xs text-slate-500 mt-0.5">Hanya menampilkan siswa yang memiliki tanggungan belum bayar.</p>
+                    <h3 id="mainSectionTitle" class="font-bold text-primary text-lg">Daftar Tunggakan Kas (Belum Lunas)</h3>
+                    <p id="mainSectionSub" class="text-xs text-slate-500">Hanya menampilkan data siswa yang belum melunasi kas.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <button onclick="copyWhatsAppRecap()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center gap-1.5">
@@ -96,12 +95,10 @@
                     </button>
                 </div>
             </div>
-            
-            <div class="overflow-x-auto">
-                <table id="kasTable" class="w-full text-left border-collapse text-sm">
-                    <thead id="tableHead" class="bg-[#03045E] text-white uppercase text-xs tracking-wider"></thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
-                </table>
+
+            <!-- Kontainer Tabel Berdasarkan Kelas -->
+            <div id="tablesContainer" class="space-y-6">
+                <!-- Rendered dynamically by JS -->
             </div>
         </div>
 
@@ -207,7 +204,17 @@
     <div id="addStudentModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl">
             <h3 class="font-bold text-primary text-lg">Tambah Siswa Baru</h3>
-            <div><label class="text-xs font-semibold text-slate-600">Nama Lengkap Siswa</label><input type="text" id="newStudentName" class="w-full mt-1 p-2.5 text-sm border rounded-xl" placeholder="Nama siswa..."></div>
+            <div class="space-y-3">
+                <div><label class="text-xs font-semibold text-slate-600">Nama Lengkap Siswa</label><input type="text" id="newStudentName" class="w-full mt-1 p-2.5 text-sm border rounded-xl" placeholder="Nama siswa..."></div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-600">Pilih Kelas</label>
+                    <select id="newStudentClass" class="w-full mt-1 p-2.5 text-sm border rounded-xl bg-white">
+                        <option value="10">Kelas 10</option>
+                        <option value="11">Kelas 11</option>
+                        <option value="12">Kelas 12</option>
+                    </select>
+                </div>
+            </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeAddStudentModal()" class="px-4 py-2 text-xs font-semibold text-slate-500">Batal</button>
                 <button onclick="saveNewStudent()" class="px-4 py-2 text-xs font-semibold bg-[#007786] text-white rounded-xl shadow">Simpan</button>
@@ -217,14 +224,14 @@
 
     <div id="addDateModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl">
-            <h3 class="font-bold text-primary text-lg">Tambah Hari / Tanggal Kas Baru</h3>
-            <div>
-                <label class="text-xs font-semibold text-slate-600">Pilih Tanggal</label>
-                <input type="date" id="newDateInput" class="w-full mt-1 p-2.5 text-sm border rounded-xl">
+            <h3 class="font-bold text-primary text-lg">Tambah Tanggal & Nominal Manual</h3>
+            <div class="space-y-3">
+                <div><label class="text-xs font-semibold text-slate-600">Pilih Tanggal</label><input type="date" id="newDateInput" class="w-full mt-1 p-2.5 text-sm border rounded-xl"></div>
+                <div><label class="text-xs font-semibold text-slate-600">Nominal Kas (Rp)</label><input type="number" id="newNominalInput" class="w-full mt-1 p-2.5 text-sm border rounded-xl" placeholder="Contoh: 5000 atau 2000"></div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeAddDateModal()" class="px-4 py-2 text-xs font-semibold text-slate-500">Batal</button>
-                <button onclick="saveNewDate()" class="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl shadow">Tambah Tanggal</button>
+                <button onclick="saveNewDate()" class="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl shadow">Simpan Tanggal</button>
             </div>
         </div>
     </div>
@@ -289,24 +296,18 @@
         const JSONBIN_BIN_ID = "6a6c5fdaf5f4af5e29d93033";
         const JSONBIN_API_KEY = "$2a$10$iAHx9cq9Zye.uIakQo.wuuqxCL5GeLDnAuKN87xJf9uFsj8o/tHhm";
 
-        function getDefaultMondays() {
-            const mondays = [];
-            let current = new Date('2024-07-27');
-            while (current.getDay() !== 1) current.setDate(current.getDate() + 1);
-            const today = new Date();
-            while (current <= today || mondays.length < 15) {
-                mondays.push(current.toISOString().split('T')[0]);
-                current.setDate(current.getDate() + 7);
-            }
-            return mondays;
+        function getDefaultDatesList() {
+            return [
+                { date: "2024-07-29", nominal: 5000 },
+                { date: "2024-08-05", nominal: 5000 }
+            ];
         }
 
         let isAdmin = localStorage.getItem('isAdminSYNC') === 'true';
-        let isFullDataView = false;
 
         let dbData = {
             pengumuman: "Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.",
-            datesList: null,
+            datesList: null, // Berisi array objek: { date: "YYYY-MM-DD", nominal: 5000 }
             siswa: [],
             pengeluaran: [],
             pemasukanLain: [],
@@ -318,14 +319,13 @@
             if (dbData.datesList && Array.isArray(dbData.datesList) && dbData.datesList.length > 0) {
                 return dbData.datesList;
             }
-            return getDefaultMondays();
+            return getDefaultDatesList();
         }
 
-        function getNominalByDate(dateStr) {
-            const time = new Date(dateStr).getTime();
-            if (time >= new Date('2026-09-14').getTime()) return 5000;
-            if (time >= new Date('2025-07-28').getTime()) return 2000;
-            return 5000;
+        function getNominalForDate(dateStr) {
+            const dates = getActiveDates();
+            const found = dates.find(d => d.date === dateStr);
+            return found ? Number(found.nominal) : 5000;
         }
 
         window.onload = function() {
@@ -356,7 +356,7 @@
                     if(!dbData.nonCash) dbData.nonCash = [];
                 }
                 document.getElementById('announcementText').innerText = dbData.pengumuman || "";
-                renderTable();
+                renderTables();
                 renderExpenses();
                 renderIncomes();
                 renderNonCash();
@@ -364,7 +364,7 @@
             .catch(() => {
                 showLoading(false);
                 alert("Gagal memuat data dari database.");
-                renderTable();
+                renderTables();
                 renderExpenses();
                 renderIncomes();
                 renderNonCash();
@@ -380,7 +380,7 @@
             })
             .then(() => {
                 showLoading(false);
-                renderTable();
+                renderTables();
                 renderExpenses();
                 renderIncomes();
                 renderNonCash();
@@ -391,95 +391,123 @@
             });
         }
 
-        function renderTable() {
-            const thead = document.getElementById('tableHead');
-            const tbody = document.getElementById('tableBody');
-            const tableTitle = document.getElementById('tableTitle');
-            const tableSubtitle = document.getElementById('tableSubtitle');
+        function renderTables() {
+            const container = document.getElementById('tablesContainer');
+            const mainTitle = document.getElementById('mainSectionTitle');
+            const mainSub = document.getElementById('mainSectionSub');
             const activeDates = getActiveDates();
 
-            let showOnlyUnpaid = !isAdmin || !isFullDataView;
+            container.innerHTML = '';
 
-            if (showOnlyUnpaid) {
-                tableTitle.innerText = "Daftar Siswa Belum Lunas (Tunggakan Kas)";
-                tableSubtitle.innerText = "Hanya menampilkan siswa yang memiliki tanggungan belum bayar.";
+            if (!isAdmin) {
+                mainTitle.innerText = "Daftar Siswa Belum Lunas (Tunggakan Kas)";
+                mainSub.innerText = "Hanya menampilkan siswa yang memiliki tanggungan belum bayar.";
             } else {
-                tableTitle.innerText = "Tabel Seluruh Rekap Pembayaran Kas";
-                tableSubtitle.innerText = "Menampilkan rekap lengkap seluruh siswa.";
+                mainTitle.innerText = "Kelola Pembayaran Kas Berdasarkan Kelas";
+                mainSub.innerText = "Admin dapat melihat dan memperbarui status pembayaran per kelas.";
             }
 
-            let headerHTML = `<tr><th class="p-3 text-center w-12">No</th><th class="p-3">Nama Siswa</th>`;
-            activeDates.forEach((dateStr) => {
-                const nominal = getNominalByDate(dateStr);
-                headerHTML += `<th class="p-3 text-center whitespace-nowrap">Tanggal<br><span class="text-[10px] font-normal opacity-80">${dateStr}</span><br><span class="text-[9px] bg-white/20 px-1 rounded">Rp ${nominal}</span></th>`;
-            });
-            headerHTML += `<th class="p-3 text-center">Total Tunggakan / Bayar</th>`;
-            if(isAdmin) headerHTML += `<th class="p-3 text-center">Aksi</th>`;
-            headerHTML += `</tr>`;
-            thead.innerHTML = headerHTML;
+            // Definisikan kelas yang akan dirender
+            // Tamu: hanya tampilkan kelas yang memiliki siswa belum lunas (utamakan kelas 10 jika belum lunas)
+            // Admin: tampilkan kelas 10, 11, dan 12 terpisah secara lengkap
+            const classesToRender = [10, 11, 12];
 
-            let targetStudents = [...dbData.siswa];
-            if (showOnlyUnpaid) {
-                targetStudents = dbData.siswa.filter(student => {
-                    let hasUnpaid = false;
-                    activeDates.forEach(dateStr => {
-                        const status = (student.payments && student.payments[dateStr]) || 'Belum Lunas';
-                        if (status !== 'Lunas' && status !== 'Libur') hasUnpaid = true;
+            classesToRender.forEach(classNum => {
+                // Filter siswa berdasarkan kelas
+                let studentsInClass = dbData.siswa.filter(s => Number(s.classGroup || 10) === classNum);
+
+                // Jika tamu, filter hanya siswa yang punya tunggakan di kelas ini
+                if (!isAdmin) {
+                    studentsInClass = studentsInClass.filter(student => {
+                        let hasUnpaid = false;
+                        activeDates.forEach(dObj => {
+                            const status = (student.payments && student.payments[dObj.date]) || 'Belum Lunas';
+                            if (status !== 'Lunas' && status !== 'Libur') hasUnpaid = true;
+                        });
+                        return hasUnpaid;
                     });
-                    return hasUnpaid;
+                    // Jika tamu dan kelas 10 sudah lunas semua tapi kelas 11 belum, atau sebaliknya, tetap tampilkan jika ada tunggakan
+                }
+
+                // Jika tamu dan sama sekali tidak ada siswa belum bayar di kelas ini, lewati
+                if (!isAdmin && studentsInClass.length === 0) return;
+
+                // Buat elemen pembungkus tabel per kelas
+                const classBox = document.createElement('div');
+                classBox.className = "bg-white rounded-2xl shadow-sm border border-[#90E0EF]/50 overflow-hidden mb-6";
+
+                let headerHTML = `
+                    <div class="bg-[#03045E] text-white px-5 py-3 font-bold text-base flex justify-between items-center">
+                        <span>🏫 Kelas ${classNum}</span>
+                        <span class="text-xs font-normal opacity-80">${studentsInClass.length} Siswa</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-[#007786] text-white uppercase text-xs tracking-wider">
+                                <tr>
+                                    <th class="p-3 text-center w-12">No</th>
+                                    <th class="p-3">Nama Siswa</th>`;
+
+                activeDates.forEach(dObj => {
+                    headerHTML += `<th class="p-3 text-center whitespace-nowrap">Tgl: ${dObj.date}<br><span class="text-[9px] bg-white/20 px-1 rounded">Rp ${Number(dObj.nominal).toLocaleString('id-ID')}</span></th>`;
                 });
-            }
 
-            let bodyHTML = '';
-            if (targetStudents.length === 0) {
-                bodyHTML = `<tr><td colspan="${activeDates.length + 3}" class="p-6 text-center text-emerald-600 font-semibold italic">🎉 Luar biasa! Tidak ada siswa yang memiliki tunggakan kas saat ini.</td></tr>`;
-            } else {
-                targetStudents.forEach((student, index) => {
-                    let totalSum = 0;
-                    let rowHTML = `<tr class="hover:bg-slate-50/80 transition">
-                        <td class="p-3 text-center font-medium text-slate-500">${index + 1}</td>
-                        <td class="p-3 font-semibold text-primary whitespace-nowrap">${student.name}</td>`;
-                    
-                    activeDates.forEach(dateStr => {
-                        const nominal = getNominalByDate(dateStr);
-                        const status = (student.payments && student.payments[dateStr]) || 'Belum Lunas';
+                headerHTML += `<th class="p-3 text-center">Total Tunggakan</th>`;
+                if(isAdmin) headerHTML += `<th class="p-3 text-center">Aksi</th>`;
+                headerHTML += `</tr></thead><tbody class="divide-y divide-slate-100 text-slate-700">`;
 
-                        if (status === 'Lunas') {
-                            if (showOnlyUnpaid) {
-                                rowHTML += `<td class="p-2 text-center text-slate-300">-</td>`;
-                                return;
+                if (studentsInClass.length === 0) {
+                    headerHTML += `<tr><td colspan="${activeDates.length + 3}" class="p-6 text-center text-emerald-600 font-semibold italic">🎉 Tidak ada tunggakan kas di kelas ini.</td></tr>`;
+                } else {
+                    studentsInClass.forEach((student, index) => {
+                        let totalSum = 0;
+                        headerHTML += `<tr class="hover:bg-slate-50/80 transition">
+                            <td class="p-3 text-center font-medium text-slate-500">${index + 1}</td>
+                            <td class="p-3 font-semibold text-primary whitespace-nowrap">${student.name}</td>`;
+
+                        activeDates.forEach(dObj => {
+                            const status = (student.payments && student.payments[dObj.date]) || 'Belum Lunas';
+                            const nominal = Number(dObj.nominal);
+
+                            if (status === 'Lunas') {
+                                totalSum += 0; // Sudah lunas tidak dihitung tunggakan
+                            } else if (status === 'Libur') {
+                                totalSum += 0;
+                            } else {
+                                totalSum += nominal; // Belum lunas masuk hitung tunggakan
                             }
-                            totalSum += nominal;
-                        } else if (status !== 'Libur') {
-                            totalSum += nominal;
-                        }
 
-                        let badgeColor = 'bg-rose-100 text-rose-700 border-rose-200';
-                        if (status === 'Lunas') badgeColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-                        if (status === 'Libur') badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
+                            let badgeColor = 'bg-rose-100 text-rose-700 border-rose-200';
+                            let badgeText = 'Belum Lunas';
+                            if (status === 'Lunas') { badgeColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'; badgeText = 'Lunas'; }
+                            if (status === 'Libur') { badgeColor = 'bg-slate-100 text-slate-600 border-slate-200'; badgeText = 'Libur'; }
 
+                            if (isAdmin) {
+                                headerHTML += `<td class="p-2 text-center">
+                                    <button onclick="togglePaymentStatus(${student.id}, '${dObj.date}')" class="px-2.5 py-1 rounded-lg text-xs font-bold border ${badgeColor} transition hover:opacity-80">
+                                        ${badgeText}
+                                    </button>
+                                </td>`;
+                            } else {
+                                headerHTML += `<td class="p-2 text-center">
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${badgeColor} inline-block">${badgeText}</span>
+                                </td>`;
+                            }
+                        });
+
+                        headerHTML += `<td class="p-3 text-center font-bold text-rose-600">Rp ${totalSum.toLocaleString('id-ID')}</td>`;
                         if (isAdmin) {
-                            rowHTML += `<td class="p-2 text-center">
-                                <button onclick="togglePaymentStatus(${student.id}, '${dateStr}')" class="px-2.5 py-1 rounded-lg text-xs font-bold border ${badgeColor} transition hover:opacity-80">
-                                    ${status}
-                                </button>
-                            </td>`;
-                        } else {
-                            rowHTML += `<td class="p-2 text-center">
-                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${badgeColor} inline-block">${status}</span>
-                            </td>`;
+                            headerHTML += `<td class="p-3 text-center"><button onclick="deleteStudent(${student.id})" class="text-rose-500 hover:text-rose-700 text-xs font-medium">Hapus</button></td>`;
                         }
+                        headerHTML += `</tr>`;
                     });
+                }
 
-                    rowHTML += `<td class="p-3 text-center font-bold ${showOnlyUnpaid ? 'text-rose-600' : 'text-secondary'}">Rp ${totalSum.toLocaleString('id-ID')}</td>`;
-                    if (isAdmin) {
-                        rowHTML += `<td class="p-3 text-center"><button onclick="deleteStudent(${student.id})" class="text-rose-500 hover:text-rose-700 text-xs font-medium">Hapus</button></td>`;
-                    }
-                    rowHTML += `</tr>`;
-                    bodyHTML += rowHTML;
-                });
-            }
-            tbody.innerHTML = bodyHTML;
+                headerHTML += `</tbody></table></div>`;
+                classBox.innerHTML = headerHTML;
+                container.appendChild(classBox);
+            });
+
             calculateFinancials();
         }
 
@@ -487,9 +515,9 @@
             const activeDates = getActiveDates();
             let totalPemasukanKas = 0;
             dbData.siswa.forEach(student => {
-                activeDates.forEach(dateStr => {
-                    if (student.payments && student.payments[dateStr] === 'Lunas') {
-                        totalPemasukanKas += getNominalByDate(dateStr);
+                activeDates.forEach(dObj => {
+                    if (student.payments && student.payments[dObj.date] === 'Lunas') {
+                        totalPemasukanKas += Number(dObj.nominal);
                     }
                 });
             });
@@ -517,17 +545,17 @@
             dbData.siswa.forEach((student) => {
                 let tunggakanAnak = 0;
                 let detailMinggu = [];
-                activeDates.forEach(dateStr => {
-                    const status = (student.payments && student.payments[dateStr]) || 'Belum Lunas';
+                activeDates.forEach(dObj => {
+                    const status = (student.payments && student.payments[dObj.date]) || 'Belum Lunas';
                     if (status !== 'Lunas' && status !== 'Libur') {
-                        tunggakanAnak += getNominalByDate(dateStr);
-                        detailMinggu.push(dateStr);
+                        tunggakanAnak += Number(dObj.nominal);
+                        detailMinggu.push(dObj.date);
                     }
                 });
 
                 if (tunggakanAnak > 0) {
                     adaTunggakan = true;
-                    text += `👤 *${student.name}*\n`;
+                    text += `👤 *${student.name}* (Kelas ${student.classGroup || 10})\n`;
                     text += `   Total Tunggakan: *Rp ${tunggakanAnak.toLocaleString('id-ID')}*\n`;
                     text += `   Tanggal belum bayar: ${detailMinggu.join(', ')}\n\n`;
                 }
@@ -640,10 +668,9 @@
             if (isAdmin) {
                 if(confirm("Keluar dari akun Admin?")) {
                     isAdmin = false;
-                    isFullDataView = false;
                     localStorage.setItem('isAdminSYNC', 'false');
                     updateAuthUI();
-                    renderTable();
+                    renderTables();
                     renderExpenses();
                     renderIncomes();
                     renderNonCash();
@@ -663,7 +690,7 @@
                 document.getElementById('loginEmail').value = '';
                 document.getElementById('loginPass').value = '';
                 updateAuthUI();
-                renderTable();
+                renderTables();
                 renderExpenses();
                 renderIncomes();
                 renderNonCash();
@@ -699,19 +726,6 @@
             }
         }
 
-        function toggleFullDataView() {
-            isFullDataView = !isFullDataView;
-            const btn = document.getElementById('viewToggleBtn');
-            if (isFullDataView) {
-                btn.innerText = "Lihat Data Belum Lunas Saja";
-                btn.className = "bg-slate-600 hover:bg-slate-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition";
-            } else {
-                btn.innerText = "Lihat Seluruh Data Kas";
-                btn.className = "bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition";
-            }
-            renderTable();
-        }
-
         function togglePaymentStatus(studentId, dateStr) {
             const student = dbData.siswa.find(s => s.id === studentId);
             if (!student) return;
@@ -728,11 +742,12 @@
         function closeAddStudentModal() { document.getElementById('addStudentModal').classList.add('hidden'); }
         function saveNewStudent() {
             const name = document.getElementById('newStudentName').value.trim();
+            const classGroup = Number(document.getElementById('newStudentClass').value);
             if(!name) return alert('Nama kosong!');
             const newId = dbData.siswa.length > 0 ? Math.max(...dbData.siswa.map(s => s.id)) + 1 : 1;
-            dbData.siswa.push({ id: newId, name: name, payments: {} });
+            dbData.siswa.push({ id: newId, name: name, classGroup: classGroup, payments: {} });
             saveDataToJSONBin();
-            addLog(`Tambah siswa: ${name}`);
+            addLog(`Tambah siswa: ${name} (Kelas ${classGroup})`);
             document.getElementById('newStudentName').value = '';
             closeAddStudentModal();
         }
@@ -748,14 +763,19 @@
         function closeAddDateModal() { document.getElementById('addDateModal').classList.add('hidden'); }
         function saveNewDate() {
             const newDate = document.getElementById('newDateInput').value;
-            if(!newDate) return alert('Pilih tanggal terlebih dahulu!');
-            if(!dbData.datesList) dbData.datesList = getDefaultMondays();
-            if(dbData.datesList.includes(newDate)) return alert('Tanggal sudah ada!');
-            dbData.datesList.push(newDate);
-            dbData.datesList.sort();
+            const nominal = document.getElementById('newNominalInput').value;
+            if(!newDate || !nominal) return alert('Lengkapi tanggal dan nominal!');
+            
+            if(!dbData.datesList) dbData.datesList = getDefaultDatesList();
+            if(dbData.datesList.some(d => d.date === newDate)) return alert('Tanggal sudah ada!');
+            
+            dbData.datesList.push({ date: newDate, nominal: Number(nominal) });
+            dbData.datesList.sort((a, b) => new Date(a.date) - new Date(b.date));
             saveDataToJSONBin();
-            addLog(`Tambah tanggal kas: ${newDate}`);
+            addLog(`Tambah tanggal kas: ${newDate} (Rp ${Number(nominal).toLocaleString('id-ID')})`);
+            
             document.getElementById('newDateInput').value = '';
+            document.getElementById('newNominalInput').value = '';
             closeAddDateModal();
         }
 
@@ -835,13 +855,13 @@
 
         function downloadDataCSV() {
             const activeDates = getActiveDates();
-            let csvContent = "data:text/csv;charset=utf-8,No,Nama Siswa,Total Bayar\r\n";
+            let csvContent = "data:text/csv;charset=utf-8,No,Nama Siswa,Kelas,Total Bayar\r\n";
             dbData.siswa.forEach((s, idx) => {
                 let total = 0;
-                activeDates.forEach(dStr => {
-                    if(s.payments && s.payments[dStr] === 'Lunas') total += getNominalByDate(dStr);
+                activeDates.forEach(dObj => {
+                    if(s.payments && s.payments[dObj.date] === 'Lunas') total += Number(dObj.nominal);
                 });
-                csvContent += `${idx+1},"${s.name}",${total}\r\n`;
+                csvContent += `${idx+1},"${s.name}",${s.classGroup || 10},${total}\r\n`;
             });
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
