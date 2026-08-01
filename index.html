@@ -79,7 +79,7 @@
             </div>
         </div>
 
-        <!-- Bagian Tabel Kas (Tamu hanya melihat yang belum lunas, Admin melihat 3 Kelas Terpisah) -->
+        <!-- Bagian Tabel Kas -->
         <div class="space-y-6">
             <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-[#90E0EF]/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
@@ -97,13 +97,11 @@
             </div>
 
             <!-- Kontainer Tabel Berdasarkan Kelas -->
-            <div id="tablesContainer" class="space-y-6">
-                <!-- Rendered dynamically by JS -->
-            </div>
+            <div id="tablesContainer" class="space-y-6"></div>
         </div>
 
-        <!-- Catatan Pengeluaran, Pemasukan Lain, Catatan Non Kas & Log -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Catatan Pengeluaran, Pemasukan Lain & Catatan Non Kas (Log Dihapus) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Pengeluaran -->
             <div class="bg-white rounded-2xl shadow-sm border border-[#90E0EF]/50 p-5 space-y-4">
                 <h3 class="font-bold text-primary text-lg">💸 Pengeluaran</h3>
@@ -140,19 +138,6 @@
                         </thead>
                         <tbody id="nonCashTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
-                </div>
-            </div>
-
-            <!-- Riwayat Log -->
-            <div class="bg-white rounded-2xl shadow-sm border border-[#90E0EF]/50 p-5 space-y-4 flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-bold text-primary text-lg">📜 Riwayat</h3>
-                        <button onclick="clearLogs()" class="text-[10px] bg-rose-100 text-rose-600 px-2 py-1 rounded-md font-semibold hover:bg-rose-200 action-col hidden">Hapus Log</button>
-                    </div>
-                    <div class="overflow-y-auto max-h-48 space-y-2 pr-1" id="logContainer">
-                        <p class="text-xs text-slate-400 italic">Belum ada aktivitas.</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -296,42 +281,27 @@
         const JSONBIN_BIN_ID = "6a6c5fdaf5f4af5e29d93033";
         const JSONBIN_API_KEY = "$2a$10$iAHx9cq9Zye.uIakQo.wuuqxCL5GeLDnAuKN87xJf9uFsj8o/tHhm";
 
-        function getDefaultDatesList() {
-            return [
-                { date: "2024-07-29", nominal: 5000 },
-                { date: "2024-08-05", nominal: 5000 }
-            ];
-        }
-
         let isAdmin = localStorage.getItem('isAdminSYNC') === 'true';
 
         let dbData = {
             pengumuman: "Saat ini sedang tidak bisa pembayaran Offline karena masih tahap PKL harap lakukan dengan pembayaran Online Via QRIS.",
-            datesList: null, // Berisi array objek: { date: "YYYY-MM-DD", nominal: 5000 }
+            datesList: [],
             siswa: [],
             pengeluaran: [],
             pemasukanLain: [],
             nonCash: []
         };
-        let logs = JSON.parse(localStorage.getItem('sync_logs')) || [{ time: '2024-07-27 10:00', text: 'Sistem diinisialisasi.' }];
 
         function getActiveDates() {
-            if (dbData.datesList && Array.isArray(dbData.datesList) && dbData.datesList.length > 0) {
+            if (dbData.datesList && Array.isArray(dbData.datesList)) {
                 return dbData.datesList;
             }
-            return getDefaultDatesList();
-        }
-
-        function getNominalForDate(dateStr) {
-            const dates = getActiveDates();
-            const found = dates.find(d => d.date === dateStr);
-            return found ? Number(found.nominal) : 5000;
+            return [];
         }
 
         window.onload = function() {
             updateAuthUI();
             fetchDataFromJSONBin();
-            renderLogs();
         };
 
         function showLoading(show) {
@@ -350,6 +320,7 @@
                 showLoading(false);
                 if (res && res.record) {
                     dbData = res.record;
+                    if(!dbData.datesList) dbData.datesList = [];
                     if(!dbData.siswa) dbData.siswa = [];
                     if(!dbData.pengeluaran) dbData.pengeluaran = [];
                     if(!dbData.pemasukanLain) dbData.pemasukanLain = [];
@@ -401,22 +372,17 @@
 
             if (!isAdmin) {
                 mainTitle.innerText = "Daftar Siswa Belum Lunas (Tunggakan Kas)";
-                mainSub.innerText = "Hanya menampilkan siswa yang memiliki tanggungan belum bayar.";
+                mainSub.innerText = "Hanya menampilkan data siswa yang belum melunasi kas.";
             } else {
                 mainTitle.innerText = "Kelola Pembayaran Kas Berdasarkan Kelas";
                 mainSub.innerText = "Admin dapat melihat dan memperbarui status pembayaran per kelas.";
             }
 
-            // Definisikan kelas yang akan dirender
-            // Tamu: hanya tampilkan kelas yang memiliki siswa belum lunas (utamakan kelas 10 jika belum lunas)
-            // Admin: tampilkan kelas 10, 11, dan 12 terpisah secara lengkap
             const classesToRender = [10, 11, 12];
 
             classesToRender.forEach(classNum => {
-                // Filter siswa berdasarkan kelas
                 let studentsInClass = dbData.siswa.filter(s => Number(s.classGroup || 10) === classNum);
 
-                // Jika tamu, filter hanya siswa yang punya tunggakan di kelas ini
                 if (!isAdmin) {
                     studentsInClass = studentsInClass.filter(student => {
                         let hasUnpaid = false;
@@ -426,13 +392,10 @@
                         });
                         return hasUnpaid;
                     });
-                    // Jika tamu dan kelas 10 sudah lunas semua tapi kelas 11 belum, atau sebaliknya, tetap tampilkan jika ada tunggakan
                 }
 
-                // Jika tamu dan sama sekali tidak ada siswa belum bayar di kelas ini, lewati
                 if (!isAdmin && studentsInClass.length === 0) return;
 
-                // Buat elemen pembungkus tabel per kelas
                 const classBox = document.createElement('div');
                 classBox.className = "bg-white rounded-2xl shadow-sm border border-[#90E0EF]/50 overflow-hidden mb-6";
 
@@ -448,9 +411,13 @@
                                     <th class="p-3 text-center w-12">No</th>
                                     <th class="p-3">Nama Siswa</th>`;
 
-                activeDates.forEach(dObj => {
-                    headerHTML += `<th class="p-3 text-center whitespace-nowrap">Tgl: ${dObj.date}<br><span class="text-[9px] bg-white/20 px-1 rounded">Rp ${Number(dObj.nominal).toLocaleString('id-ID')}</span></th>`;
-                });
+                if (activeDates.length === 0) {
+                    headerHTML += `<th class="p-3 text-center">Belum ada tanggal kas yang diinput admin</th>`;
+                } else {
+                    activeDates.forEach(dObj => {
+                        headerHTML += `<th class="p-3 text-center whitespace-nowrap">Tgl: ${dObj.date}<br><span class="text-[9px] bg-white/20 px-1 rounded">Rp ${Number(dObj.nominal).toLocaleString('id-ID')}</span></th>`;
+                    });
+                }
 
                 headerHTML += `<th class="p-3 text-center">Total Tunggakan</th>`;
                 if(isAdmin) headerHTML += `<th class="p-3 text-center">Aksi</th>`;
@@ -458,6 +425,8 @@
 
                 if (studentsInClass.length === 0) {
                     headerHTML += `<tr><td colspan="${activeDates.length + 3}" class="p-6 text-center text-emerald-600 font-semibold italic">🎉 Tidak ada tunggakan kas di kelas ini.</td></tr>`;
+                } else if (activeDates.length === 0) {
+                    headerHTML += `<tr><td colspan="3" class="p-6 text-center text-slate-400 italic">Silakan tambahkan tanggal & nominal melalui panel admin.</td></tr>`;
                 } else {
                     studentsInClass.forEach((student, index) => {
                         let totalSum = 0;
@@ -469,12 +438,10 @@
                             const status = (student.payments && student.payments[dObj.date]) || 'Belum Lunas';
                             const nominal = Number(dObj.nominal);
 
-                            if (status === 'Lunas') {
-                                totalSum += 0; // Sudah lunas tidak dihitung tunggakan
-                            } else if (status === 'Libur') {
+                            if (status === 'Lunas' || status === 'Libur') {
                                 totalSum += 0;
                             } else {
-                                totalSum += nominal; // Belum lunas masuk hitung tunggakan
+                                totalSum += nominal;
                             }
 
                             let badgeColor = 'bg-rose-100 text-rose-700 border-rose-200';
@@ -636,34 +603,6 @@
             tbody.innerHTML = html;
         }
 
-        function renderLogs() {
-            const container = document.getElementById('logContainer');
-            let html = '';
-            logs.slice().reverse().forEach(log => {
-                html += `<div class="p-2 bg-slate-50 border rounded-xl text-xs space-y-0.5">
-                    <span class="text-[9px] text-slate-400 block">${log.time}</span>
-                    <p class="text-slate-700 font-medium">${log.text}</p>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function addLog(text) {
-            const timeStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
-            logs.push({ time: timeStr, text: text });
-            localStorage.setItem('sync_logs', JSON.stringify(logs));
-            renderLogs();
-        }
-
-        function clearLogs() {
-            if (confirm("Hapus seluruh riwayat aktivitas (log)?")) {
-                logs = [];
-                localStorage.setItem('sync_logs', JSON.stringify(logs));
-                renderLogs();
-            }
-        }
-
-        // Modals & Actions
         function toggleAuthModal() {
             if (isAdmin) {
                 if(confirm("Keluar dari akun Admin?")) {
@@ -694,7 +633,6 @@
                 renderExpenses();
                 renderIncomes();
                 renderNonCash();
-                addLog('Admin login.');
             } else {
                 alert('Email atau Password salah!');
             }
@@ -734,10 +672,8 @@
             let next = current === 'Belum Lunas' ? 'Lunas' : (current === 'Lunas' ? 'Libur' : 'Belum Lunas');
             student.payments[dateStr] = next;
             saveDataToJSONBin();
-            addLog(`Ubah status ${student.name} (${dateStr}) -> ${next}`);
         }
 
-        // Modals control
         function openAddStudentModal() { document.getElementById('addStudentModal').classList.remove('hidden'); }
         function closeAddStudentModal() { document.getElementById('addStudentModal').classList.add('hidden'); }
         function saveNewStudent() {
@@ -747,7 +683,6 @@
             const newId = dbData.siswa.length > 0 ? Math.max(...dbData.siswa.map(s => s.id)) + 1 : 1;
             dbData.siswa.push({ id: newId, name: name, classGroup: classGroup, payments: {} });
             saveDataToJSONBin();
-            addLog(`Tambah siswa: ${name} (Kelas ${classGroup})`);
             document.getElementById('newStudentName').value = '';
             closeAddStudentModal();
         }
@@ -755,7 +690,6 @@
             if(confirm("Hapus siswa?")) {
                 dbData.siswa = dbData.siswa.filter(s => s.id !== id);
                 saveDataToJSONBin();
-                addLog(`Hapus siswa ID: ${id}`);
             }
         }
 
@@ -766,13 +700,12 @@
             const nominal = document.getElementById('newNominalInput').value;
             if(!newDate || !nominal) return alert('Lengkapi tanggal dan nominal!');
             
-            if(!dbData.datesList) dbData.datesList = getDefaultDatesList();
+            if(!dbData.datesList) dbData.datesList = [];
             if(dbData.datesList.some(d => d.date === newDate)) return alert('Tanggal sudah ada!');
             
             dbData.datesList.push({ date: newDate, nominal: Number(nominal) });
             dbData.datesList.sort((a, b) => new Date(a.date) - new Date(b.date));
             saveDataToJSONBin();
-            addLog(`Tambah tanggal kas: ${newDate} (Rp ${Number(nominal).toLocaleString('id-ID')})`);
             
             document.getElementById('newDateInput').value = '';
             document.getElementById('newNominalInput').value = '';
@@ -789,7 +722,6 @@
             const newId = dbData.pengeluaran.length > 0 ? Math.max(...dbData.pengeluaran.map(e => e.id)) + 1 : 1;
             dbData.pengeluaran.push({ id: newId, date, desc, amount: Number(amount) });
             saveDataToJSONBin();
-            addLog(`Pengeluaran: ${desc} (Rp ${Number(amount).toLocaleString('id-ID')})`);
             closeAddExpenseModal();
         }
         function deleteExpense(id) {
@@ -809,7 +741,6 @@
             const newId = dbData.pemasukanLain.length > 0 ? Math.max(...dbData.pemasukanLain.map(i => i.id)) + 1 : 1;
             dbData.pemasukanLain.push({ id: newId, date, desc, amount: Number(amount) });
             saveDataToJSONBin();
-            addLog(`Pemasukan Lain: ${desc} (+Rp ${Number(amount).toLocaleString('id-ID')})`);
             closeAddIncomeModal();
         }
         function deleteIncome(id) {
@@ -828,7 +759,6 @@
             const newId = dbData.nonCash.length > 0 ? Math.max(...dbData.nonCash.map(n => n.id)) + 1 : 1;
             dbData.nonCash.push({ id: newId, date, desc });
             saveDataToJSONBin();
-            addLog(`Catatan Non Kas: ${desc}`);
             closeAddNonCashModal();
         }
         function deleteNonCash(id) {
@@ -849,7 +779,6 @@
             dbData.pengumuman = val;
             document.getElementById('announcementText').innerText = dbData.pengumuman;
             saveDataToJSONBin();
-            addLog('Update pengumuman.');
             closeEditAnnouncementModal();
         }
 
